@@ -1,0 +1,361 @@
+{
+  "project": "demandflow",
+  "created": "2026-07-05",
+  "tech_stack": {
+    "language": "python",
+    "test_framework": "pytest",
+    "coverage_tool": "pytest-cov",
+    "mutation_tool": "mutmut"
+  },
+  "quality_gates": {
+    "line_coverage_min": 80,
+    "branch_coverage_min": 70,
+    "mutation_score_min": 75,
+    "mutation_full_threshold": 100
+  },
+  "constraints": [
+    "CON-001: 多智能体团队协作架构为硬性约束：每阶段由分工明确的多角色 Agent + 协调 Agent 组成",
+    "CON-002: 工作流编排基于状态机 + 事件驱动，使用 LangGraph 实现",
+    "CON-003: 后端 FastAPI；Agent 层 LangChain/DeepAgents + 主流大模型 API；存储 PostgreSQL + MinIO + Git；前端 React + Ant Design + AntV G6",
+    "CON-004: 本轮接入单一 IM 渠道（平台可配置）",
+    "CON-005: 单组织内部使用，非多租户",
+    "CON-006: 不集成外部 CI/CD 或 Issue 系统",
+    "CON-007: 大模型 API 为外部依赖，受 API 速率与成本约束"
+  ],
+  "assumptions": [
+    "ASM-001: 提交人 IM 身份可由 IM 平台 Webhook payload 可靠提供",
+    "ASM-002: 指定 Git 仓库的写入凭证已配置且可用",
+    "ASM-003: 大模型 API 服务可用且响应在可接受范围（p95 < 5min）",
+    "ASM-004: 评审/设计/实施 Agent 的 Prompt 工程可在设计阶段调优至可用质量",
+    "ASM-005: 单实例部署可满足本轮并发需求（≥5 并发）"
+  ],
+  "required_configs": [
+    {
+      "name": "LLM API Key",
+      "type": "env",
+      "key": "LLM_API_KEY",
+      "description": "大模型 API 密钥（OpenAI/兼容格式）",
+      "required_by": [8, 9, 10, 12, 13, 15],
+      "check_hint": "设置环境变量 LLM_API_KEY=your-api-key"
+    },
+    {
+      "name": "Git Repository URL",
+      "type": "env",
+      "key": "GIT_REPO_URL",
+      "description": "Git 仓库地址（HTTPS 或 SSH）",
+      "required_by": [18],
+      "check_hint": "设置环境变量 GIT_REPO_URL=https://github.com/user/repo.git"
+    },
+    {
+      "name": "IM Platform",
+      "type": "env",
+      "key": "IM_PLATFORM",
+      "description": "IM 平台类型（dingtalk/feishu/slack）",
+      "required_by": [3],
+      "check_hint": "设置环境变量 IM_PLATFORM=dingtalk"
+    },
+    {
+      "name": "IM Webhook Secret",
+      "type": "env",
+      "key": "IM_WEBHOOK_SECRET",
+      "description": "IM Webhook 签名密钥",
+      "required_by": [3],
+      "check_hint": "设置环境变量 IM_WEBHOOK_SECRET=your-secret"
+    },
+    {
+      "name": "MinIO Endpoint",
+      "type": "env",
+      "key": "MINIO_ENDPOINT",
+      "description": "MinIO 服务地址",
+      "required_by": [13, 19],
+      "check_hint": "设置环境变量 MINIO_ENDPOINT=localhost:9000"
+    },
+    {
+      "name": "MinIO Access Key",
+      "type": "env",
+      "key": "MINIO_ACCESS_KEY",
+      "description": "MinIO 访问密钥",
+      "required_by": [13, 19],
+      "check_hint": "设置环境变量 MINIO_ACCESS_KEY=your-access-key"
+    },
+    {
+      "name": "MinIO Secret Key",
+      "type": "env",
+      "key": "MINIO_SECRET_KEY",
+      "description": "MinIO 密钥",
+      "required_by": [13, 19],
+      "check_hint": "设置环境变量 MINIO_SECRET_KEY=your-secret-key"
+    }
+  ],
+  "features": [
+    {
+      "id": 1,
+      "category": "core",
+      "title": "项目骨架与基础设施",
+      "description": "搭建 FastAPI 项目结构、SQLite 数据库连接、Huey 任务队列配置、基础目录结构",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": [],
+      "dependencies": [],
+      "ui": false
+    },
+    {
+      "id": 2,
+      "category": "core",
+      "title": "数据模型与迁移",
+      "description": "实现 SQLAlchemy 模型（Requirements, ReviewResults, DesignResults, ImplementationResults, DeliveryArchives, StatusHistory, ArbitrationRequests, IdempotencyStore）并创建 Alembic 迁移",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": [],
+      "dependencies": [1],
+      "ui": false
+    },
+    {
+      "id": 3,
+      "category": "core",
+      "title": "IM Webhook 接入",
+      "description": "实现 IM Webhook Handler，接收消息并路由到 MessageRouter",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-001"],
+      "dependencies": [2],
+      "ui": false
+    },
+    {
+      "id": 4,
+      "category": "core",
+      "title": "需求结构化与 ID 生成",
+      "description": "实现 RequirementParser，解析需求消息并生成 REQ-YYYYMMDD-NNN 格式 ID",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-002", "FR-003"],
+      "dependencies": [3],
+      "ui": false
+    },
+    {
+      "id": 5,
+      "category": "core",
+      "title": "状态变更指令系统",
+      "description": "实现确认/驳回指令解析与执行，包括权限校验",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-004a"],
+      "dependencies": [4],
+      "ui": false
+    },
+    {
+      "id": 6,
+      "category": "core",
+      "title": "查询指令系统",
+      "description": "实现进度查询/我的列表指令解析与执行",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-004b"],
+      "dependencies": [4],
+      "ui": false
+    },
+    {
+      "id": 7,
+      "category": "core",
+      "title": "状态机引擎",
+      "description": "基于 LangGraph 实现需求全生命周期状态流转，支持持久化恢复",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-020"],
+      "dependencies": [2],
+      "ui": false
+    },
+    {
+      "id": 8,
+      "category": "core",
+      "title": "评审团多角色打分",
+      "description": "实现 3 角色评审 Agent 并行打分（业务价值、技术可行性、投入产出比、系统兼容性）",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-005"],
+      "dependencies": [7],
+      "ui": false
+    },
+    {
+      "id": 9,
+      "category": "core",
+      "title": "评审结论汇总与裁决",
+      "description": "实现评审结论汇总逻辑（≥2通过自动通过，≥2反对触发仲裁）",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-006"],
+      "dependencies": [8],
+      "ui": false
+    },
+    {
+      "id": 10,
+      "category": "core",
+      "title": "人工仲裁处理",
+      "description": "实现仲裁请求推送、管理员响应处理、超时提醒与升级",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-007"],
+      "dependencies": [9],
+      "ui": false
+    },
+    {
+      "id": 11,
+      "category": "core",
+      "title": "评审驳回通知与归档",
+      "description": "实现驳回 IM 通知、需求归档、停止流转",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-008a", "FR-008b"],
+      "dependencies": [10],
+      "ui": false
+    },
+    {
+      "id": 12,
+      "category": "core",
+      "title": "设计团多角色产出",
+      "description": "实现 3 角色设计 Agent 并行产出（产品设计、技术选型、合规风控）",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-009"],
+      "dependencies": [7],
+      "ui": false
+    },
+    {
+      "id": 13,
+      "category": "core",
+      "title": "设计产出物生成",
+      "description": "生成概要设计文档、代码目录骨架、核心接口定义",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-010"],
+      "dependencies": [12],
+      "ui": false
+    },
+    {
+      "id": 14,
+      "category": "core",
+      "title": "设计确认门与迭代",
+      "description": "实现设计确认/驳回、3 轮迭代上限、历史版本保留",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-011", "FR-012"],
+      "dependencies": [13],
+      "ui": false
+    },
+    {
+      "id": 15,
+      "category": "core",
+      "title": "实施团代码生成",
+      "description": "按设计稿生成可运行源代码",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-013"],
+      "dependencies": [7],
+      "ui": false
+    },
+    {
+      "id": 16,
+      "category": "core",
+      "title": "冲烟验证",
+      "description": "实现语法/编译检查、导入检查、启动检查",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-014"],
+      "dependencies": [15],
+      "ui": false
+    },
+    {
+      "id": 17,
+      "category": "core",
+      "title": "实施确认门",
+      "description": "实现实施结果确认/驳回、3 轮迭代上限",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-015"],
+      "dependencies": [16],
+      "ui": false
+    },
+    {
+      "id": 18,
+      "category": "core",
+      "title": "Git 提交与密钥检测",
+      "description": "实现独立分支创建、Conventional Commits、密钥检测阻止",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-016"],
+      "dependencies": [17],
+      "ui": false
+    },
+    {
+      "id": 19,
+      "category": "core",
+      "title": "交付档案与状态归档",
+      "description": "生成交付档案、状态置已交付、IM 通知",
+      "priority": "high",
+      "status": "failing",
+      "srs_trace": ["FR-017a", "FR-017b"],
+      "dependencies": [18],
+      "ui": false
+    },
+    {
+      "id": 20,
+      "category": "ui",
+      "title": "看板首页指标",
+      "description": "实现总览指标卡片（总需求数、评审通过率、进行中需求数）",
+      "priority": "medium",
+      "status": "failing",
+      "srs_trace": ["FR-018"],
+      "dependencies": [2],
+      "ui": true,
+      "ui_entry": "/",
+      "verification_steps": [
+        "[devtools] Navigate / → EXPECT: page title '总览', 3 metric cards with labels '总需求数', '评审通过率', '进行中需求'; REJECT: blank page, missing cards, console errors"
+      ]
+    },
+    {
+      "id": 21,
+      "category": "ui",
+      "title": "需求列表与筛选搜索",
+      "description": "实现需求列表表格（7列）+ 筛选栏 + 搜索 + 分页",
+      "priority": "medium",
+      "status": "failing",
+      "srs_trace": ["FR-019"],
+      "dependencies": [2],
+      "ui": true,
+      "ui_entry": "/requirements",
+      "verification_steps": [
+        "[devtools] Navigate /requirements → EXPECT: page title '需求列表', filter bar with 3 selects, table with 7 columns, pagination; REJECT: empty table, missing filter controls"
+      ]
+    },
+    {
+      "id": 22,
+      "category": "ui",
+      "title": "需求详情页",
+      "description": "实现需求详情页（左右双栏布局）+ 状态流转时间线",
+      "priority": "medium",
+      "status": "failing",
+      "srs_trace": [],
+      "dependencies": [20, 21],
+      "ui": true,
+      "ui_entry": "/requirements/:id",
+      "verification_steps": [
+        "[devtools] Navigate /requirements/REQ-20260704-001 → EXPECT: breadcrumb, requirement ID, status badge, timeline, action buttons; REJECT: 404, missing components"
+      ]
+    },
+    {
+      "id": 23,
+      "category": "ui",
+      "title": "看板操作与 IM 同步",
+      "description": "实现看板确认/驳回操作，同步 IM 通知",
+      "priority": "medium",
+      "status": "failing",
+      "srs_trace": ["FR-021"],
+      "dependencies": [22],
+      "ui": true,
+      "ui_entry": "/requirements/:id",
+      "verification_steps": [
+        "[devtools] Navigate /requirements/:id → click '确认' button → EXPECT: modal appears, confirm action, status updates; REJECT: no modal, action fails"
+      ]
+    }
+  ]
+}
