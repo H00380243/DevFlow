@@ -1,4 +1,4 @@
-"""Command Executor — F005 状态变更指令系统."""
+"""Command Executor — F005/F006 状态变更与查询指令系统."""
 
 from pydantic import BaseModel, Field
 from sqlalchemy import text
@@ -9,6 +9,8 @@ from app.core.command_parser import (
     CommandParseError,
     CommandParser,
     ConfirmCommand,
+    ListCommand,
+    ProgressCommand,
 )
 from app.core.permission_checker import PermissionChecker
 
@@ -19,12 +21,71 @@ class CommandResult(BaseModel):
     message: str
 
 
+class QueryExecutor:
+    """Executes query commands (progress/list) against the database."""
+
+    def execute_query(self, command: Command, sender_id: str, db: Session) -> CommandResult:
+        """Execute a query command.
+
+        Args:
+            command: Parsed command (ProgressCommand or ListCommand).
+            sender_id: The sender's user identifier.
+            db: SQLAlchemy database session.
+
+        Returns:
+            CommandResult with query results.
+        """
+        try:
+            if isinstance(command, ProgressCommand):
+                return self._execute_progress(command, db)
+            elif isinstance(command, ListCommand):
+                return self._execute_list(command, sender_id, db)
+            else:
+                return CommandResult(status="error", message="不支持的查询类型")
+        except Exception:
+            return CommandResult(status="error", message="系统错误")
+
+    def _execute_progress(self, command: ProgressCommand, db: Session) -> CommandResult:
+        """Execute progress query."""
+        result = db.execute(
+            text("SELECT current_stage, current_status FROM requirements WHERE id = :req_id"),
+            {"req_id": command.requirement_id},
+        )
+        row = result.first()
+        if row is None:
+            return CommandResult(
+                status="error",
+                message=f"需求 {command.requirement_id} 不存在",
+            )
+        message = f"{command.requirement_id}: 阶段={row.current_stage}, 状态={row.current_status}"
+        return CommandResult(status="ok", message=message)
+
+    def _execute_list(self, command: ListCommand, sender_id: str, db: Session) -> CommandResult:
+        """Execute list query."""
+        result = db.execute(
+            text(
+                "SELECT id, current_stage, current_status "
+                "FROM requirements WHERE submitter_id = :sender_id "
+                "ORDER BY created_at DESC"
+            ),
+            {"sender_id": sender_id},
+        )
+        rows = result.fetchall()
+        if not rows:
+            return CommandResult(status="ok", message="暂无需求记录")
+        lines = ["您的需求清单："]
+        for i, row in enumerate(rows, 1):
+            lines.append(f"{i}. {row.id} ({row.current_stage}-{row.current_status})")
+        return CommandResult(status="ok", message="\n".join(lines))
+
+
 class CommandExecutor:
     """Orchestrates command parsing, permission checking, and execution."""
 
     def __init__(self):
         self._parser = CommandParser()
         self._permission_checker = PermissionChecker()
+        self._query_executor = QueryExecutor()
 
     def execute(self, sender_id: str, command_text: str, db: Session) -> CommandResult:
         """Execute a command from IM text.
@@ -42,6 +103,11 @@ class CommandExecutor:
         except CommandParseError as e:
             return CommandResult(status="error", message=str(e))
 
+        # Query commands don't need permission check — dispatch immediately
+        if isinstance(command, (ProgressCommand, ListCommand)):
+            return self._query_executor.execute_query(command, sender_id, db)
+
+        # Permission check for mutation commands (confirm/reject)
         has_permission = self._permission_checker.check_permission(
             sender_id, command.requirement_id, db
         )

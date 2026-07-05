@@ -1,7 +1,7 @@
 # Task Progress — demandflow
 
 ## Current State
-Progress: 5/23 · Last: F005 (状态变更指令系统, 2026-07-05) · Next: F006 (查询指令系统)
+Progress: 6/23 · Last: F006 (查询指令系统, 2026-07-05) · Next: F007 (状态机引擎)
 
 ### Session 1 — 2026-07-05 (Resume) — Orient
 **Phase**: Worker (long-task-work) — resuming F001 after prior interrupted session
@@ -211,6 +211,15 @@ Progress: 5/23 · Last: F005 (状态变更指令系统, 2026-07-05) · Next: F00
 → Bootstrap: no service startup.
 
 **Config Gate**: PASS (no required configs)
+
+### Feature #6: 查询指令系统 — PASS
+- Completed: 2026-07-05
+- TDD: green ✓ (15/15)
+- Quality Gates: 97% line, 97% branch
+- Feature-ST: 15 cases, all PASS
+- Inline Check: PASS
+- Files: app/core/command_parser.py (modified), app/core/command_executor.py (modified)
+- Tests: tests/test_query_parser.py (15)
 
 ---
 

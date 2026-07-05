@@ -1,4 +1,4 @@
-"""Command Parser — F005 状态变更指令系统."""
+"""Command Parser — F005/F006 状态变更与查询指令系统."""
 
 import re
 from dataclasses import dataclass, field
@@ -15,7 +15,7 @@ class CommandParseError(Exception):
 @dataclass
 class Command:
     """Base command dataclass."""
-    requirement_id: str
+    requirement_id: str = ""
     command_type: str = field(init=False)
 
 
@@ -38,6 +38,24 @@ class RejectCommand(Command):
         self.command_type = "reject"
 
 
+@dataclass
+class ProgressCommand(Command):
+    """Progress command — queries requirement progress."""
+    command_type: str = field(init=False, default="progress")
+
+    def __post_init__(self):
+        self.command_type = "progress"
+
+
+@dataclass
+class ListCommand(Command):
+    """List command — queries submitter's requirement list."""
+    command_type: str = field(init=False, default="list")
+
+    def __post_init__(self):
+        self.command_type = "list"
+
+
 class CommandParser:
     """Parses IM command text into Command objects."""
 
@@ -48,7 +66,7 @@ class CommandParser:
             text: Raw IM message text (e.g., "确认 REQ-20260705-001").
 
         Returns:
-            ConfirmCommand or RejectCommand.
+            ConfirmCommand, RejectCommand, ProgressCommand, or ListCommand.
 
         Raises:
             CommandParseError: If text is empty, None, or format is invalid.
@@ -58,13 +76,19 @@ class CommandParser:
 
         text = text.strip()
 
+        if text.startswith("进度"):
+            return self._parse_progress(text)
+
+        if text == "我的列表":
+            return self._parse_list(text)
+
         if text.startswith("确认 "):
             return self._parse_confirm(text)
 
         if text.startswith("驳回 "):
             return self._parse_reject(text)
 
-        raise CommandParseError("正确格式: 确认/驳回 REQ-YYYYMMDD-NNN")
+        raise CommandParseError("正确格式: 确认/驳回/进度 REQ-YYYYMMDD-NNN 或 我的列表")
 
     def _parse_confirm(self, text: str) -> ConfirmCommand:
         """Parse confirm command text.
@@ -102,3 +126,34 @@ class CommandParser:
                 reason = sub_parts[1] if len(sub_parts) > 1 else ""
                 return RejectCommand(requirement_id=sub_parts[0], reason=reason)
         raise CommandParseError("正确格式: 驳回 REQ-YYYYMMDD-NNN 修改意见XXX")
+
+    def _parse_progress(self, text: str) -> ProgressCommand:
+        """Parse progress command text.
+
+        Args:
+            text: Text starting with '进度'.
+
+        Returns:
+            ProgressCommand.
+
+        Raises:
+            CommandParseError: If REQ ID is missing or invalid.
+        """
+        after_keyword = text[len("进度"):]
+        if not after_keyword or not after_keyword.strip():
+            raise CommandParseError("正确格式: 进度 REQ-YYYYMMDD-NNN")
+        parts = after_keyword.strip().split(maxsplit=1)
+        if len(parts) == 1 and REQ_ID_PATTERN.match(parts[0]):
+            return ProgressCommand(requirement_id=parts[0])
+        raise CommandParseError("正确格式: 进度 REQ-YYYYMMDD-NNN")
+
+    def _parse_list(self, text: str) -> ListCommand:
+        """Parse list command text.
+
+        Args:
+            text: Exact match '我的列表'.
+
+        Returns:
+            ListCommand.
+        """
+        return ListCommand()

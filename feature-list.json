@@ -174,10 +174,14 @@
       "title": "查询指令系统",
       "description": "实现进度查询/我的列表指令解析与执行",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-004b"],
       "dependencies": [4],
-      "ui": false
+      "ui": false,
+      "st_case_path": "docs/test-cases/feature-6-query-parser.md",
+      "st_case_count": 15,
+      "git_sha": "pending",
+      "report_path": "docs/report/feature-6-query-parser-report.md"
     },
     {
       "id": 7,

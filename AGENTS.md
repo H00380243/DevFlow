@@ -1,5 +1,5 @@
 ## Goal
-- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F006 (查询指令系统).
+- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F007 (状态机引擎).
 
 ## Constraints & Preferences
 - SQLite replaces PostgreSQL; Huey with SQLite backend (both DB and queue)
@@ -33,11 +33,15 @@
   - CommandParser, PermissionChecker, CommandExecutor
   - 129 total tests (31 F005-specific), 97% line / 97% branch coverage, 15/15 ST cases PASS
   - Report: `docs/report/feature-5-command-parser-report.md`
+- **F006 (查询指令系统): PASS** — pending commit
+  - CommandParser extensions (ProgressCommand, ListCommand), QueryExecutor
+  - 144 total tests (15 F006-specific), 97% line / 97% branch coverage, 15/15 ST cases PASS
+  - Report: `docs/report/feature-6-query-parser-report.md`
 
 ### In Progress
-- **F006 (查询指令系统): FAILING** — Orient step pending
-  - Dependencies: F004 ✓
-  - SRS Trace: FR-004b
+- **F007 (状态机引擎): FAILING** — Orient step pending
+  - Dependencies: F002 ✓
+  - SRS Trace: FR-020
   - Next: Start Orient → Bootstrap → Config Gate
 
 ### Blocked
@@ -50,26 +54,27 @@
 - **F003 implementation**: MessageRouter with CommandType enum (REQUIREMENT/COMMAND/UNSUPPORTED); async webhook returns 202; Huey processes message in background
 - **F004 implementation**: RequirementParser with generate_id() using REQ-YYYYMMDD-NNN format; IdempotencyChecker with 5-minute window
 - **F005 implementation**: CommandParser with confirm/reject parsing; PermissionChecker with submitter-only validation; CommandExecutor orchestrating parse → permission → DB ops
+- **F006 implementation**: CommandParser extended with _parse_progress/_parse_list; QueryExecutor handling progress/list queries; no permission check for query commands
 
 ## Next Steps
-1. Start F006 Orient → Bootstrap → Config Gate
-2. F006 Feature Detailed Design via SubAgent
-3. F006 TDD Red-Green-Refactor cycle
-4. F006 Quality Gates, ST, Inline Check, Persist
-5. Continue F007–F023
+1. Start F007 Orient → Bootstrap → Config Gate
+2. F007 Feature Detailed Design via SubAgent
+3. F007 TDD Red-Green-Refactor cycle
+4. F007 Quality Gates, ST, Inline Check, Persist
+5. Continue F008–F023
 
 ## Critical Context
-- Progress: 5/23 features passing; Next: F006
+- Progress: 6/23 features passing; Next: F007
 - Critical path: F001→F002→F003→F004→F007→F008→F009→F010→F011
 - 23 features total, 7 milestones
-- F006 key classes: `QueryParser`, `ProgressQuery`, `ListQuery`
-- F006 contract C-004: `POST /api/queries` accepts Query, returns `{status, data}`
-- F006 SRS FR-004b: progress/list queries with permission validation
+- F007 key classes: `RequirementStateMachine`, `StateTransition`, `StateMachineConfig`
+- F007 contract C-005: `POST /api/state-machine` accepts Trigger, returns `{status, data}`
+- F007 SRS FR-020: requirement lifecycle state machine
 - Git HEAD: `b95bbff` (docs: update feature-list.json and task-progress.md)
 
 ## Relevant Files
 - `docs/plans/2026-07-04-demandflow-srs.md` — Approved SRS (21 FRs, 11 NFRs); FR-004b is F006's srs_trace
-- `docs/plans/2026-07-04-demandflow-design.md` — Approved Design; §2.1 (IM integration), §4.2 (API contracts C-004)
+- `docs/plans/2026-07-04-demandflow-design.md` — Approved Design; §2.1 (IM integration), §4.2 (API contracts)
 - `docs/plans/2026-07-04-demandflow-ats.md` — Approved ATS
 - `feature-list.json` — Task inventory (F001-F005 passing, F006 failing)
 - `task-progress.md` — Progress log (5/23, last: F005, next: F006)
@@ -91,22 +96,26 @@
 - `tests/test_webhook_handler.py`, `tests/test_message_router.py` — F003 tests
 - `tests/test_requirement_parser.py`, `tests/test_idempotency_checker.py` — F004 tests
 - `tests/test_command_parser.py`, `tests/test_permission_checker.py`, `tests/test_command_executor.py` — F005 tests
+- `tests/test_query_parser.py` — F006 tests
 - `docs/features/2026-07-05-F001-project-skeleton.md` — F001 feature design
 - `docs/features/2026-07-05-F002-data-model.md` — F002 feature design
 - `docs/features/2026-07-05-F003-im-webhook.md` — F003 feature design
 - `docs/features/2026-07-05-F004-requirement-parser.md` — F004 feature design
 - `docs/features/2026-07-05-F005-command-parser.md` — F005 feature design
+- `docs/features/2026-07-05-F006-query-parser.md` — F006 feature design
 - `docs/test-cases/feature-1-project-skeleton.md` — F001 ST cases
 - `docs/test-cases/feature-2-data-model.md` — F002 ST cases
 - `docs/test-cases/feature-3-im-webhook.md` — F003 ST cases
 - `docs/test-cases/feature-4-requirement-parser.md` — F004 ST cases
 - `docs/test-cases/feature-5-command-parser.md` — F005 ST cases
+- `docs/test-cases/feature-6-query-parser.md` — F006 ST cases
 - `docs/report/feature-1-project-skeleton-report.md` — F001 report
 - `docs/report/feature-2-data-model-report.md` — F002 report
 - `docs/report/feature-3-im-webhook-report.md` — F003 report
 - `docs/report/feature-4-requirement-parser-report.md` — F004 report
 - `docs/report/feature-5-command-parser-report.md` — F005 report
-- `RELEASE_NOTES.md` — Updated with F001 + F002 + F003 + F004 + F005
+- `docs/report/feature-6-query-parser-report.md` — F006 report
+- `RELEASE_NOTES.md` — Updated with F001 + F002 + F003 + F004 + F005 + F006
 - `long-task-guide.md` — Worker session guide
 - `env-guide.md` — Service lifecycle
 - `.env.example` — Environment variable template
