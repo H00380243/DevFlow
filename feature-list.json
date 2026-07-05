@@ -120,6 +120,7 @@
       "ui": false,
       "st_case_path": "docs/test-cases/feature-2-data-model.md",
       "st_case_count": 28,
+      "git_sha": "f59520f",
       "report_path": "docs/report/feature-2-data-model-report.md"
     },
     {

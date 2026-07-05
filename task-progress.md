@@ -83,7 +83,7 @@ Progress: 2/23 · Last: F002 (数据模型与迁移, 2026-07-05) · Next: F003 (
 - Quality Gates: 98% line, 98% branch
 - Feature-ST: 28 cases, all PASS
 - Inline Check: PASS
-- Git: (pending commit)
+- Git: f59520f feat: 数据模型与迁移 (#2)
 #### Risks
 - ⚠ [Dependency] alembic==1.18.5 — 设计 §1.4 标注 ^1.13；实际 1.18.5 满足 ^1.13
 - ⚠ [Validator] validate_features.py 对 SRS 子 ID 约定支持不足（非 F002 引起）
