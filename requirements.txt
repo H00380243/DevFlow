@@ -1,0 +1,23 @@
+# DemandFlow — Python dependencies
+# Pinned to versions verified working in the development environment.
+# Install: pip install -r requirements.txt
+
+# --- Runtime (F001 skeleton: FastAPI + SQLAlchemy + Huey + settings) ---
+fastapi==0.139.0
+uvicorn==0.50.0
+sqlalchemy==2.0.51
+huey==3.1.1
+pydantic-settings==2.14.2
+python-dotenv==1.2.2
+
+# --- Dev / Test ---
+pytest==9.1.1
+pytest-cov==7.1.0
+mutmut==3.6.0  # NOTE: does not run natively on Windows (requires WSL); see task-progress.md
+
+# --- Pending (later features) ---
+# alembic>=1.13  # F002 data model & migrations
+# langgraph>=0.2  # F007 state machine engine
+# langchain>=0.2  # F008+ agent layer
+# gitpython>=3.1  # F018 git commit
+# minio  # F013/F019 object storage

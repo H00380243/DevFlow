@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.cache
+*,cover
+
+# Mutation testing
+mutants/
+.mutmut-cache
+
+# Runtime data — SQLite dbs and Huey queue files (created on demand by the app)
+data/
+huey.db
+huey.db-journal
+huey.db-wal
+huey.db-shm
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Environment / secrets — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Long-task plugin root pointer (machine-specific — regenerated per machine)
+scripts/.long-task-plugin-root
