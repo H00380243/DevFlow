@@ -14,6 +14,7 @@
 - F004 需求结构化与 ID 生成 — RequirementParser 解析需求消息生成结构化数据、IdempotencyChecker 防重复提交、REQ-YYYYMMDD-NNN 格式 ID；27 tests，覆盖率 97% line / 97% branch；13 ISO 29119 验收用例全部通过
 - F005 状态变更指令系统 — CommandParser 解析确认/驳回指令、PermissionChecker 校验提交人权限、CommandExecutor 执行指令并记录状态历史；31 tests，覆盖率 97% line / 97% branch；15 ISO 29119 验收用例全部通过
 - F006 查询指令系统 — CommandParser 扩展支持进度/我的列表查询、QueryExecutor 执行查询返回格式化结果、ProgressCommand/ListCommand 数据类；15 tests，覆盖率 97% line / 97% branch；15 ISO 29119 验收用例全部通过
+- F007 状态机引擎 — StateMachine 需求全生命周期状态流转、StateTransitionTable 合法迁移表、PersistenceManager SQLite 持久化、Status/Event 枚举；23 tests，覆盖率 98% line / 98% branch；18 ISO 29119 验收用例全部通过
 
 ### Changed
 - (none yet)

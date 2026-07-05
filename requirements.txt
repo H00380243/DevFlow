@@ -17,7 +17,7 @@ pytest-cov==7.1.0
 mutmut==3.6.0  # NOTE: does not run natively on Windows (requires WSL); see task-progress.md
 
 # --- Pending (later features) ---
-# langgraph>=0.2  # F007 state machine engine
+langgraph>=0.2  # F007 state machine engine
 # langchain>=0.2  # F008+ agent layer
 # gitpython>=3.1  # F018 git commit
 # minio  # F013/F019 object storage

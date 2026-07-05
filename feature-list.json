@@ -185,14 +185,18 @@
     },
     {
       "id": 7,
-        "category": "core",
-        "title": "状态机引擎",
-        "description": "基于 LangGraph 实现需求全生命周期状态流转，支持持久化恢�?,
-        "priority": "high",
-        "status": "passing",
-        "srs_trace": ["FR-020"],
-        "dependencies": [2],
-        "ui": false
+      "category": "core",
+      "title": "状态机引擎",
+      "description": "基于 LangGraph 实现需求全生命周期状态流转，支持持久化恢复",
+      "priority": "high",
+      "status": "passing",
+      "srs_trace": ["FR-020"],
+      "dependencies": [2],
+      "ui": false,
+      "st_case_path": "docs/test-cases/feature-7-state-machine.md",
+      "st_case_count": 18,
+      "git_sha": "8779ae5",
+      "report_path": "docs/report/feature-7-state-machine-report.md"
     },
     {
       "id": 8,
