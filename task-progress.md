@@ -1,7 +1,7 @@
 # Task Progress — demandflow
 
 ## Current State
-Progress: 6/23 · Last: F006 (查询指令系统, 2026-07-05) · Next: F007 (状态机引擎)
+Progress: 7/23 · Last: F007 (状态机引擎, 2026-07-06) · Next: F008 (评审团多角色打分)
 
 ### Session 1 — 2026-07-05 (Resume) — Orient
 **Phase**: Worker (long-task-work) — resuming F001 after prior interrupted session
@@ -221,6 +221,17 @@ Progress: 6/23 · Last: F006 (查询指令系统, 2026-07-05) · Next: F007 (状
 - Git: b1303b4 feat: 查询指令系统 (F006) — 进度/我的列表查询解析与执行
 - Files: app/core/command_parser.py (modified), app/core/command_executor.py (modified)
 - Tests: tests/test_query_parser.py (15)
+
+### Feature #7: 状态机引擎 — PASS
+- Completed: 2026-07-06
+- TDD: green ✓ (23/23)
+- Quality Gates: 98% line, 98% branch
+- Feature-ST: Pending
+- Inline Check: Pending
+- Git: 8779ae5 feat(F007): implement state machine engine with 23 passing tests
+- Files: app/core/state_machine.py (new), tests/test_state_machine.py (new)
+- Tests: 23 tests covering FUNC, BNDRY, INTG categories
+- Key components: Status/Event enums, StateTransitionTable, PersistenceManager, StateMachine
 
 ---
 
