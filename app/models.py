@@ -276,6 +276,53 @@ def init_db(engine: Engine) -> None:
     Base.metadata.create_all(bind=engine)
 
 
+# --- Pydantic models for IM Webhook (Feature F003) ---
+
+from enum import Enum
+from pydantic import BaseModel, Field
+
+
+class MessageType(str, Enum):
+    """Message type enum for IM message classification."""
+    REQUIREMENT = "REQUIREMENT"
+    COMMAND = "COMMAND"
+    UNSUPPORTED = "UNSUPPORTED"
+    TEXT = "TEXT"
+    IMAGE = "IMAGE"
+    FILE = "FILE"
+    VOICE = "VOICE"
+
+
+class IMMessage(BaseModel):
+    """IM message data class."""
+    message_id: str = Field(..., min_length=1, max_length=100)
+    sender_id: str = Field(..., min_length=1, max_length=100)
+    content: str | None = Field(None, max_length=10000)
+    timestamp: str
+    message_type: MessageType = MessageType.TEXT
+
+
+class MessageResult(BaseModel):
+    """Result from MessageRouter.route()."""
+    status: str = Field(..., pattern="^(ok|error)$")
+    message: str
+
+
+class WebhookPayload(BaseModel):
+    """IM Webhook payload from external platform."""
+    message_id: str = Field(..., min_length=1, max_length=100)
+    sender_id: str = Field(..., min_length=1, max_length=100)
+    content: str | None = Field(None, max_length=10000)
+    timestamp: str
+    message_type: str | None = None
+
+
+class WebhookResponse(BaseModel):
+    """Response from WebhookHandler.handle_webhook()."""
+    status: str = Field(..., pattern="^(ok|error)$")
+    message: str
+
+
 __all__ = [
     "Base",
     "Requirements",
@@ -287,4 +334,9 @@ __all__ = [
     "ArbitrationRequests",
     "IdempotencyStore",
     "init_db",
+    "IMMessage",
+    "MessageType",
+    "MessageResult",
+    "WebhookPayload",
+    "WebhookResponse",
 ]

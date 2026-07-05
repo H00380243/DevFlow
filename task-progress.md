@@ -1,7 +1,7 @@
 # Task Progress — demandflow
 
 ## Current State
-Progress: 2/23 · Last: F002 (数据模型与迁移, 2026-07-05) · Next: F003 (IM Webhook 接入)
+Progress: 3/23 · Last: F003 (IM Webhook 接入, 2026-07-05) · Next: F004 (需求结构化与 ID 生成)
 
 ### Session 1 — 2026-07-05 (Resume) — Orient
 **Phase**: Worker (long-task-work) — resuming F001 after prior interrupted session
@@ -142,6 +142,30 @@ Progress: 2/23 · Last: F002 (数据模型与迁移, 2026-07-05) · Next: F003 (
 - 无 UI 测试用例（ui:false）；无 Manual 用例。
 - 测试执行：29 pytest 全绿（含 1 个额外 init_db ArgumentError 测试）；6 warnings（SAWarning + subprocess GBK encoding，均非测试失败）。
 - 无服务启动（F002 纯 SQLite 文件测试）；环境干净。
+
+### Feature #3: IM Webhook 接入 — PASS
+- Completed: 2026-07-05
+- TDD: green ✓ (22/22)
+- Quality Gates: 96% line, 96% branch
+- Feature-ST: 12 cases, all PASS
+- Inline Check: PASS
+- Files: app/core/webhook.py, app/core/message_router.py, app/models.py (modified), app/main.py (modified)
+- Tests: tests/test_webhook_handler.py (12), tests/test_message_router.py (10)
+- Configs: IM_PLATFORM=feishu, IM_WEBHOOK_SECRET=test-secret
+
+### Session 3 — 2026-07-05 (F003) — Orient
+**Phase**: Worker (long-task-work) — F003 IM Webhook 接入
+**Target Feature**: F003 — IM Webhook 接入 (id=3, priority=high, deps=[2]✓, srs_trace=["FR-001"], ui=false)
+
+**Service dependency determination**: NO external service deps.
+- F003 required_configs: IM_PLATFORM, IM_WEBHOOK_SECRET (configured)
+- dependencies: [2] (F002 passing — provides data models)
+- Design §2.1: IM integration is a webhook endpoint, not an external service
+→ Bootstrap: no service startup.
+
+**Config Gate**: PASS
+- IM_PLATFORM=feishu ✓
+- IM_WEBHOOK_SECRET=test-secret ✓
 
 ---
 

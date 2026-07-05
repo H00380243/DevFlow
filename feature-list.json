@@ -129,10 +129,14 @@
       "title": "IM Webhook 接入",
       "description": "实现 IM Webhook Handler，接收消息并路由到 MessageRouter",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-001"],
       "dependencies": [2],
-      "ui": false
+      "ui": false,
+      "st_case_path": "docs/test-cases/feature-3-im-webhook.md",
+      "st_case_count": 12,
+      "git_sha": "pending",
+      "report_path": "docs/report/feature-3-im-webhook-report.md"
     },
     {
       "id": 4,
