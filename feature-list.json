@@ -13,6 +13,11 @@
     "mutation_score_min": 75,
     "mutation_full_threshold": 100
   },
+  "real_test": {
+    "marker_pattern": "@pytest\\.mark\\.real",
+    "test_dir": "tests/",
+    "mock_patterns": ["mock\\.patch", "MagicMock", "mocker\\.patch", "@patch"]
+  },
   "constraints": [
     "CON-001: 多智能体团队协作架构为硬性约束：每阶段由分工明确的多角色 Agent + 协调 Agent 组成",
     "CON-002: 工作流编排基于状态机 + 事件驱动，使用 LangGraph 实现",
@@ -94,10 +99,14 @@
       "title": "项目骨架与基础设施",
       "description": "搭建 FastAPI 项目结构、SQLite 数据库连接、Huey 任务队列配置、基础目录结构",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": [],
       "dependencies": [],
-      "ui": false
+      "ui": false,
+      "st_case_path": "docs/test-cases/feature-1-project-skeleton.md",
+      "st_case_count": 11,
+      "git_sha": "e0c4404",
+      "report_path": "docs/report/feature-1-project-skeleton-report.md"
     },
     {
       "id": 2,
