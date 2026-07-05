@@ -149,6 +149,7 @@ Progress: 3/23 · Last: F003 (IM Webhook 接入, 2026-07-05) · Next: F004 (需�
 - Quality Gates: 96% line, 96% branch
 - Feature-ST: 12 cases, all PASS
 - Inline Check: PASS
+- Git: f7c9a7c feat: IM Webhook 接入 (#3)
 - Files: app/core/webhook.py, app/core/message_router.py, app/models.py (modified), app/main.py (modified)
 - Tests: tests/test_webhook_handler.py (12), tests/test_message_router.py (10)
 - Configs: IM_PLATFORM=feishu, IM_WEBHOOK_SECRET=test-secret

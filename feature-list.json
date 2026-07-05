@@ -135,7 +135,7 @@
       "ui": false,
       "st_case_path": "docs/test-cases/feature-3-im-webhook.md",
       "st_case_count": 12,
-      "git_sha": "pending",
+      "git_sha": "f7c9a7c",
       "report_path": "docs/report/feature-3-im-webhook-report.md"
     },
     {
