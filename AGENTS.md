@@ -33,7 +33,7 @@
   - CommandParser, PermissionChecker, CommandExecutor
   - 129 total tests (31 F005-specific), 97% line / 97% branch coverage, 15/15 ST cases PASS
   - Report: `docs/report/feature-5-command-parser-report.md`
-- **F006 (查询指令系统): PASS** — pending commit
+- **F006 (查询指令系统): PASS** — git `b1303b4`
   - CommandParser extensions (ProgressCommand, ListCommand), QueryExecutor
   - 144 total tests (15 F006-specific), 97% line / 97% branch coverage, 15/15 ST cases PASS
   - Report: `docs/report/feature-6-query-parser-report.md`
