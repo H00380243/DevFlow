@@ -114,10 +114,13 @@
       "title": "数据模型与迁移",
       "description": "实现 SQLAlchemy 模型（Requirements, ReviewResults, DesignResults, ImplementationResults, DeliveryArchives, StatusHistory, ArbitrationRequests, IdempotencyStore）并创建 Alembic 迁移",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": [],
       "dependencies": [1],
-      "ui": false
+      "ui": false,
+      "st_case_path": "docs/test-cases/feature-2-data-model.md",
+      "st_case_count": 28,
+      "report_path": "docs/report/feature-2-data-model-report.md"
     },
     {
       "id": 3,
