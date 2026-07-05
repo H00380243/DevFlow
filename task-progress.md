@@ -196,6 +196,7 @@ Progress: 5/23 · Last: F005 (状态变更指令系统, 2026-07-05) · Next: F00
 - Quality Gates: 97% line, 97% branch
 - Feature-ST: 15 cases, all PASS
 - Inline Check: PASS
+- Git: ee85144 feat: 状态变更指令系统 (#5)
 - Files: app/core/command_parser.py, app/core/permission_checker.py, app/core/command_executor.py
 - Tests: tests/test_command_parser.py (16), tests/test_permission_checker.py (4), tests/test_command_executor.py (11)
 

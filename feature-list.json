@@ -165,7 +165,7 @@
       "ui": false,
       "st_case_path": "docs/test-cases/feature-5-command-parser.md",
       "st_case_count": 15,
-      "git_sha": "pending",
+      "git_sha": "ee85144",
       "report_path": "docs/report/feature-5-command-parser-report.md"
     },
     {
