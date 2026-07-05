@@ -150,7 +150,7 @@
       "ui": false,
       "st_case_path": "docs/test-cases/feature-4-requirement-parser.md",
       "st_case_count": 13,
-      "git_sha": "pending",
+      "git_sha": "d1565b3",
       "report_path": "docs/report/feature-4-requirement-parser-report.md"
     },
     {

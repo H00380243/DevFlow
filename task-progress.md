@@ -174,6 +174,7 @@ Progress: 4/23 · Last: F004 (需求结构化与 ID 生成, 2026-07-05) · Next:
 - Quality Gates: 97% line, 97% branch
 - Feature-ST: 13 cases, all PASS
 - Inline Check: PASS
+- Git: d1565b3 feat: 需求结构化与 ID 生成 (#4)
 - Files: app/core/requirement_parser.py, app/core/idempotency.py, app/models.py (modified)
 - Tests: tests/test_requirement_parser.py (27), tests/test_idempotency_checker.py (8)
 
