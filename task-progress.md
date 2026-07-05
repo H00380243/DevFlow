@@ -218,6 +218,7 @@ Progress: 6/23 · Last: F006 (查询指令系统, 2026-07-05) · Next: F007 (状
 - Quality Gates: 97% line, 97% branch
 - Feature-ST: 15 cases, all PASS
 - Inline Check: PASS
+- Git: b1303b4 feat: 查询指令系统 (F006) — 进度/我的列表查询解析与执行
 - Files: app/core/command_parser.py (modified), app/core/command_executor.py (modified)
 - Tests: tests/test_query_parser.py (15)
 
