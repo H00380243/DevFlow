@@ -1,7 +1,7 @@
 # Task Progress — demandflow
 
 ## Current State
-Progress: 4/23 · Last: F004 (需求结构化与 ID 生成, 2026-07-05) · Next: F005 (状态变更指令系统)
+Progress: 5/23 · Last: F005 (状态变更指令系统, 2026-07-05) · Next: F006 (查询指令系统)
 
 ### Session 1 — 2026-07-05 (Resume) — Orient
 **Phase**: Worker (long-task-work) — resuming F001 after prior interrupted session
@@ -186,6 +186,27 @@ Progress: 4/23 · Last: F004 (需求结构化与 ID 生成, 2026-07-05) · Next:
 - F004 required_configs: none
 - dependencies: [3] (F003 passing — provides IM webhook)
 - Design §2.2: Pure code feature, no external services
+→ Bootstrap: no service startup.
+
+**Config Gate**: PASS (no required configs)
+
+### Feature #5: 状态变更指令系统 — PASS
+- Completed: 2026-07-05
+- TDD: green ✓ (31/31)
+- Quality Gates: 97% line, 97% branch
+- Feature-ST: 15 cases, all PASS
+- Inline Check: PASS
+- Files: app/core/command_parser.py, app/core/permission_checker.py, app/core/command_executor.py
+- Tests: tests/test_command_parser.py (16), tests/test_permission_checker.py (4), tests/test_command_executor.py (11)
+
+### Session 5 — 2026-07-05 (F005) — Orient
+**Phase**: Worker (long-task-work) — F005 状态变更指令系统
+**Target Feature**: F005 — 状态变更指令系统 (id=5, priority=high, deps=[4]✓, srs_trace=["FR-004a"], ui=false)
+
+**Service dependency determination**: NO external service deps.
+- F005 required_configs: none
+- dependencies: [4] (F004 passing — provides requirement parser)
+- Design §2.1: Pure code feature, no external services
 → Bootstrap: no service startup.
 
 **Config Gate**: PASS (no required configs)

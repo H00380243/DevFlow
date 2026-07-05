@@ -159,10 +159,14 @@
       "title": "状态变更指令系统",
       "description": "实现确认/驳回指令解析与执行，包括权限校验",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-004a"],
       "dependencies": [4],
-      "ui": false
+      "ui": false,
+      "st_case_path": "docs/test-cases/feature-5-command-parser.md",
+      "st_case_count": 15,
+      "git_sha": "pending",
+      "report_path": "docs/report/feature-5-command-parser-report.md"
     },
     {
       "id": 6,
