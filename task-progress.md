@@ -1,7 +1,7 @@
 # Task Progress — demandflow
 
 ## Current State
-Progress: 3/23 · Last: F003 (IM Webhook 接入, 2026-07-05) · Next: F004 (需求结构化与 ID 生成)
+Progress: 4/23 · Last: F004 (需求结构化与 ID 生成, 2026-07-05) · Next: F005 (状态变更指令系统)
 
 ### Session 1 — 2026-07-05 (Resume) — Orient
 **Phase**: Worker (long-task-work) — resuming F001 after prior interrupted session
@@ -167,6 +167,27 @@ Progress: 3/23 · Last: F003 (IM Webhook 接入, 2026-07-05) · Next: F004 (需�
 **Config Gate**: PASS
 - IM_PLATFORM=feishu ✓
 - IM_WEBHOOK_SECRET=test-secret ✓
+
+### Feature #4: 需求结构化与 ID 生成 — PASS
+- Completed: 2026-07-05
+- TDD: green ✓ (35/35)
+- Quality Gates: 97% line, 97% branch
+- Feature-ST: 13 cases, all PASS
+- Inline Check: PASS
+- Files: app/core/requirement_parser.py, app/core/idempotency.py, app/models.py (modified)
+- Tests: tests/test_requirement_parser.py (27), tests/test_idempotency_checker.py (8)
+
+### Session 4 — 2026-07-05 (F004) — Orient
+**Phase**: Worker (long-task-work) — F004 需求结构化与 ID 生成
+**Target Feature**: F004 — 需求结构化与 ID 生成 (id=4, priority=high, deps=[3]✓, srs_trace=["FR-002","FR-003"], ui=false)
+
+**Service dependency determination**: NO external service deps.
+- F004 required_configs: none
+- dependencies: [3] (F003 passing — provides IM webhook)
+- Design §2.2: Pure code feature, no external services
+→ Bootstrap: no service startup.
+
+**Config Gate**: PASS (no required configs)
 
 ---
 

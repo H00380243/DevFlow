@@ -144,10 +144,14 @@
       "title": "需求结构化与 ID 生成",
       "description": "实现 RequirementParser，解析需求消息并生成 REQ-YYYYMMDD-NNN 格式 ID",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-002", "FR-003"],
       "dependencies": [3],
-      "ui": false
+      "ui": false,
+      "st_case_path": "docs/test-cases/feature-4-requirement-parser.md",
+      "st_case_count": 13,
+      "git_sha": "pending",
+      "report_path": "docs/report/feature-4-requirement-parser-report.md"
     },
     {
       "id": 5,

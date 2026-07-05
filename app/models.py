@@ -7,7 +7,7 @@ DeliveryArchives, StatusHistory, ArbitrationRequests, IdempotencyStore), a share
 Design reference: docs/features/2026-07-05-F002-data-model.md §3 Interface Contract.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     CheckConstraint,
@@ -323,6 +323,18 @@ class WebhookResponse(BaseModel):
     message: str
 
 
+class StructuredRequirement(BaseModel):
+    """Structured requirement output from RequirementParser.parse()."""
+    id: str = Field(..., min_length=1)
+    original_text: str = Field(..., min_length=1)
+    summary: str = Field(..., min_length=0)
+    submitter_id: str = Field(..., min_length=1)
+    submitter_name: str | None = None
+    tags: list[str] = Field(default_factory=list)
+    estimated_scope: str | None = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
 __all__ = [
     "Base",
     "Requirements",
@@ -339,4 +351,5 @@ __all__ = [
     "MessageResult",
     "WebhookPayload",
     "WebhookResponse",
+    "StructuredRequirement",
 ]
