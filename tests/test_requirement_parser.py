@@ -278,10 +278,14 @@ class TestExtractConstraints:
 class TestConcurrentIdGeneration:
     """Test T: INTG — concurrent generate_id calls produce unique IDs."""
 
-    def test_concurrent_generate_id_unique(self):
-        from datetime import datetime
+    @patch("app.core.requirement_parser.datetime")
+    def test_concurrent_generate_id_unique(self, mock_dt):
+        from datetime import datetime as real_dt
+        mock_now = real_dt(2026, 7, 7, 12, 0, 0)
+        mock_dt.now.return_value = mock_now
+        mock_dt.side_effect = lambda *a, **kw: real_dt(*a, **kw) if a else mock_now
+
         mock_session = MagicMock()
-        # Simulate: first call returns None (empty DB), second returns 1
         call_count = [0]
         def side_effect(*args, **kwargs):
             call_count[0] += 1
@@ -297,11 +301,10 @@ class TestConcurrentIdGeneration:
 
         id1 = parser.generate_id()
         id2 = parser.generate_id()
-        today = datetime.now().strftime("%Y%m%d")
 
         assert id1 != id2
-        assert id1 == f"REQ-{today}-001"
-        assert id2 == f"REQ-{today}-002"
+        assert id1 == "REQ-20260707-001"
+        assert id2 == "REQ-20260707-002"
 
 
 class TestParseSqlInjection:
