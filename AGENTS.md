@@ -41,7 +41,7 @@
   - StateMachine, StateTransitionTable, PersistenceManager, Status/Event enums
   - 167 total tests (23 F007-specific), 98% line / 98% branch coverage, 18/18 ST cases PASS
   - Report: `docs/report/feature-7-state-machine-report.md`
-- **F008 (评审团多角色打分): PASS** — pending commit
+- **F008 (评审团多角色打分): PASS** — git `ddd60da`
   - ReviewTeam, ReviewAgent, DimensionScores, Verdict, retry_with_backoff
   - 182 total tests (15 F008-specific), 96% line / ~93% branch coverage, ST skipped (user requested)
   - Report: `docs/report/feature-8-review-scoring-report.md`
