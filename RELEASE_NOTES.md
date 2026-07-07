@@ -15,6 +15,7 @@
 - F005 状态变更指令系统 — CommandParser 解析确认/驳回指令、PermissionChecker 校验提交人权限、CommandExecutor 执行指令并记录状态历史；31 tests，覆盖率 97% line / 97% branch；15 ISO 29119 验收用例全部通过
 - F006 查询指令系统 — CommandParser 扩展支持进度/我的列表查询、QueryExecutor 执行查询返回格式化结果、ProgressCommand/ListCommand 数据类；15 tests，覆盖率 97% line / 97% branch；15 ISO 29119 验收用例全部通过
 - F007 状态机引擎 — StateMachine 需求全生命周期状态流转、StateTransitionTable 合法迁移表、PersistenceManager SQLite 持久化、Status/Event 枚举；23 tests，覆盖率 98% line / 98% branch；18 ISO 29119 验收用例全部通过
+- F008 评审团多角色打分 — ReviewTeam 多角色并行打分、ReviewAgent 4维度评分、Verdict 裁决枚举、指数退避重试、全失败通知；15 tests，覆盖率 96% line / ~93% branch
 
 ### Changed
 - (none yet)

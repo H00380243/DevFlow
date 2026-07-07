@@ -1,5 +1,5 @@
 ## Goal
-- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F008 (评审团多角色打分).
+- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F009 (评审结论汇总与裁决).
 
 ## Constraints & Preferences
 - SQLite replaces PostgreSQL; Huey with SQLite backend (both DB and queue)
@@ -41,11 +41,15 @@
   - StateMachine, StateTransitionTable, PersistenceManager, Status/Event enums
   - 167 total tests (23 F007-specific), 98% line / 98% branch coverage, 18/18 ST cases PASS
   - Report: `docs/report/feature-7-state-machine-report.md`
+- **F008 (评审团多角色打分): PASS** — pending commit
+  - ReviewTeam, ReviewAgent, DimensionScores, Verdict, retry_with_backoff
+  - 182 total tests (15 F008-specific), 96% line / ~93% branch coverage, ST skipped (user requested)
+  - Report: `docs/report/feature-8-review-scoring-report.md`
 
 ### In Progress
-- **F008 (评审团多角色打分): FAILING** — Orient step pending
-  - Dependencies: F007 ✓
-  - SRS Trace: FR-005
+- **F009 (评审结论汇总与裁决): FAILING** — Orient step pending
+  - Dependencies: F008 ✓
+  - SRS Trace: FR-006
   - Next: Start Orient → Bootstrap → Config Gate
 
 ### Blocked
@@ -59,21 +63,23 @@
 - **F004 implementation**: RequirementParser with generate_id() using REQ-YYYYMMDD-NNN format; IdempotencyChecker with 5-minute window
 - **F005 implementation**: CommandParser with confirm/reject parsing; PermissionChecker with submitter-only validation; CommandExecutor orchestrating parse → permission → DB ops
 - **F006 implementation**: CommandParser extended with _parse_progress/_parse_list; QueryExecutor handling progress/list queries; no permission check for query commands
+- **F007 implementation**: StateMachine with StateTransitionTable and PersistenceManager; 14 Status states, 10+6 Events, 16 valid transitions
+- **F008 implementation**: ReviewTeam with 3 parallel ReviewAgents (产品分析/价值评估/技术可行性); DimensionScores 4-dimension 1-5 scoring; Verdict enum; retry_with_backoff exponential backoff
 
 ## Next Steps
-1. Start F008 Orient → Bootstrap → Config Gate
-2. F008 Feature Detailed Design via SubAgent
-3. F008 TDD Red-Green-Refactor cycle
-4. F008 Quality Gates, ST, Inline Check, Persist
-5. Continue F009–F023
+1. Start F009 Orient → Bootstrap → Config Gate
+2. F009 Feature Detailed Design via SubAgent
+3. F009 TDD Red-Green-Refactor cycle
+4. F009 Quality Gates, ST, Inline Check, Persist
+5. Continue F010–F023
 
 ## Critical Context
-- Progress: 7/23 features passing; Next: F008
+- Progress: 8/23 features passing; Next: F009
 - Critical path: F001→F002→F003→F004→F007→F008→F009→F010→F011
 - 23 features total, 7 milestones
 - F008 key classes: `ReviewTeam`, `ReviewAgent`, `DimensionScores`, `Verdict`, `ReviewResult`
 - F008 contract C-006: `POST /api/reviews` accepts ReviewRequest, returns `{status, data}`
-- F008 SRS FR-005: requirement lifecycle state machine
+- F008 SRS FR-005: 3-role 4-dimension parallel review scoring
 - Git HEAD: `8779ae5` (feat(F007): implement state machine engine)
 
 ## Relevant Files
@@ -94,6 +100,7 @@
 - `app/core/permission_checker.py` — PermissionChecker (F005)
 - `app/core/command_executor.py` — CommandExecutor (F005)
 - `app/core/state_machine.py` — StateMachine (F007)
+- `app/core/review_scoring.py` — ReviewTeam, ReviewAgent (F008)
 - `app/models.py` — 8 SQLAlchemy models + init_db + Pydantic models
 - `alembic/` — Alembic migration config + `versions/0001_initial.py`
 - `tests/test_app.py`, `tests/test_config.py`, `tests/test_database.py`, `tests/test_queue.py` — F001 tests
@@ -103,6 +110,7 @@
 - `tests/test_command_parser.py`, `tests/test_permission_checker.py`, `tests/test_command_executor.py` — F005 tests
 - `tests/test_query_parser.py` — F006 tests
 - `tests/test_state_machine.py` — F007 tests
+- `tests/test_review_scoring.py` — F008 tests
 - `docs/features/2026-07-05-F001-project-skeleton.md` — F001 feature design
 - `docs/features/2026-07-05-F002-data-model.md` — F002 feature design
 - `docs/features/2026-07-05-F003-im-webhook.md` — F003 feature design
@@ -110,6 +118,7 @@
 - `docs/features/2026-07-05-F005-command-parser.md` — F005 feature design
 - `docs/features/2026-07-05-F006-query-parser.md` — F006 feature design
 - `docs/features/2026-07-05-F007-state-machine.md` — F007 feature design
+- `docs/features/2026-07-07-F008-review-scoring.md` — F008 feature design
 - `docs/test-cases/feature-1-project-skeleton.md` — F001 ST cases
 - `docs/test-cases/feature-2-data-model.md` — F002 ST cases
 - `docs/test-cases/feature-3-im-webhook.md` — F003 ST cases
@@ -117,6 +126,7 @@
 - `docs/test-cases/feature-5-command-parser.md` — F005 ST cases
 - `docs/test-cases/feature-6-query-parser.md` — F006 ST cases
 - `docs/test-cases/feature-7-state-machine.md` — F007 ST cases
+- `docs/test-cases/feature-8-review-scoring.md` — F008 ST cases
 - `docs/report/feature-1-project-skeleton-report.md` — F001 report
 - `docs/report/feature-2-data-model-report.md` — F002 report
 - `docs/report/feature-3-im-webhook-report.md` — F003 report
@@ -124,7 +134,8 @@
 - `docs/report/feature-5-command-parser-report.md` — F005 report
 - `docs/report/feature-6-query-parser-report.md` — F006 report
 - `docs/report/feature-7-state-machine-report.md` — F007 report
-- `RELEASE_NOTES.md` — Updated with F001 + F002 + F003 + F004 + F005 + F006 + F007
+- `docs/report/feature-8-review-scoring-report.md` — F008 report
+- `RELEASE_NOTES.md` — Updated with F001 + F002 + F003 + F004 + F005 + F006 + F007 + F008
 - `long-task-guide.md` — Worker session guide
 - `env-guide.md` — Service lifecycle
 - `.env.example` — Environment variable template

@@ -1,7 +1,7 @@
 # Task Progress — demandflow
 
 ## Current State
-Progress: 7/23 · Last: F007 (状态机引擎, 2026-07-06) · Next: F008 (评审团多角色打分)
+Progress: 8/23 · Last: F008 (评审团多角色打分, 2026-07-07) · Next: F009 (评审结论汇总与裁决)
 
 ### Session 1 — 2026-07-05 (Resume) — Orient
 **Phase**: Worker (long-task-work) — resuming F001 after prior interrupted session
@@ -226,12 +226,22 @@ Progress: 7/23 · Last: F007 (状态机引擎, 2026-07-06) · Next: F008 (评审
 - Completed: 2026-07-06
 - TDD: green ✓ (23/23)
 - Quality Gates: 98% line, 98% branch
-- Feature-ST: Pending
-- Inline Check: Pending
+- Feature-ST: 18 cases, all PASS
+- Inline Check: PASS
 - Git: 8779ae5 feat(F007): implement state machine engine with 23 passing tests
 - Files: app/core/state_machine.py (new), tests/test_state_machine.py (new)
 - Tests: 23 tests covering FUNC, BNDRY, INTG categories
 - Key components: Status/Event enums, StateTransitionTable, PersistenceManager, StateMachine
+
+### Feature #8: 评审团多角色打分 — PASS
+- Completed: 2026-07-07
+- TDD: green ✓ (15/15)
+- Quality Gates: 96% line, ~93% branch
+- Feature-ST: Skipped (user requested)
+- Inline Check: PASS
+- Files: app/core/review_scoring.py (new), tests/test_review_scoring.py (new)
+- Tests: 15 tests covering FUNC, BNDRY, PERF, INTG categories
+- Key components: ReviewAgent, ReviewTeam, Verdict, DimensionScores, retry_with_backoff
 
 ---
 

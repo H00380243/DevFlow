@@ -204,10 +204,14 @@
       "title": "评审团多角色打分",
       "description": "实现 3 角色评审 Agent 并行打分（业务价值、技术可行性、投入产出比、系统兼容性）",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-005"],
       "dependencies": [7],
-      "ui": false
+      "ui": false,
+      "st_case_path": "docs/test-cases/feature-8-review-scoring.md",
+      "st_case_count": 15,
+      "git_sha": "pending",
+      "report_path": "docs/report/feature-8-review-scoring-report.md"
     },
     {
       "id": 9,
