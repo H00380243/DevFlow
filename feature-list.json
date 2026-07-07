@@ -219,10 +219,14 @@
       "title": "评审结论汇总与裁决",
       "description": "实现评审结论汇总逻辑（≥2通过自动通过，≥2反对触发仲裁）",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-006"],
       "dependencies": [8],
-      "ui": false
+      "ui": false,
+      "st_case_path": "docs/test-cases/feature-9-review-aggregation.md",
+      "st_case_count": 18,
+      "git_sha": "b68f1b5",
+      "report_path": "docs/report/feature-9-review-aggregation-report.md"
     },
     {
       "id": 10,

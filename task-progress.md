@@ -1,7 +1,7 @@
 # Task Progress — demandflow
 
 ## Current State
-Progress: 8/23 · Last: F008 (评审团多角色打分, 2026-07-07) · Next: F009 (评审结论汇总与裁决)
+Progress: 9/23 · Last: F009 (评审结论汇总与裁决, 2026-07-07) · Next: F010 (人工仲裁处理)
 
 ### Session 1 — 2026-07-05 (Resume) — Orient
 **Phase**: Worker (long-task-work) — resuming F001 after prior interrupted session
@@ -242,6 +242,16 @@ Progress: 8/23 · Last: F008 (评审团多角色打分, 2026-07-07) · Next: F00
 - Files: app/core/review_scoring.py (new), tests/test_review_scoring.py (new)
 - Tests: 15 tests covering FUNC, BNDRY, PERF, INTG categories
 - Key components: ReviewAgent, ReviewTeam, Verdict, DimensionScores, retry_with_backoff
+
+### Feature #9: 评审结论汇总与裁决 — PASS
+- Completed: 2026-07-07
+- TDD: green ✓ (18/18)
+- Quality Gates: 98% line, 98% branch
+- Feature-ST: Skipped (user requested)
+- Inline Check: PASS
+- Files: app/core/review_aggregation.py (new), tests/test_review_aggregation.py (new)
+- Tests: 18 tests covering FUNC, BNDRY categories
+- Key components: AggregationService, ArbitrationHandler, FinalDecision, ReviewResult, _decide
 
 ---
 
