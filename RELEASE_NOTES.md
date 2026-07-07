@@ -20,6 +20,7 @@
 - F010 人工仲裁处理 — ArbitrationNotifier IM 推送仲裁请求（指数退避重试 3 次）、ArbitrationTimeoutMonitor 4 小时超时检测与 3 次升级、CommandExecutor 仲裁指令路由；14 tests，覆盖率 98% line / 100% branch
 - F011 评审驳回通知与归档 — RejectionNotifier 驳回通知（指数退避重试 3 次）、format_rejection_message 格式化中文消息、复用 F010 NotificationFailedError；10 tests，覆盖率 97% line / 100% branch
 - F012 设计团多角色产出 — DesignTeam 协调 3 角色（产品设计、技术选型、合规风控）DesignAgent 并行产出概要设计、指数退避重试、全失败通知、高风险 [高风险] 标注；19 tests，覆盖率 95% line / 90% branch
+- F013 设计产出物生成 — DesignOutputHandler 生成结构化设计文档（JSON）、代码目录骨架、核心接口验证标记、待确认项标注、MinIO 上传（3 次指数退避重试）、状态流转（IN_DESIGN→DESIGN_PENDING_CONFIRM）、提交人 IM 通知；17 tests，覆盖率 100% line（design_output_handler.py）
 
 ### Changed
 - (none yet)

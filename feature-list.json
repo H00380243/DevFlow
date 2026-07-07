@@ -276,10 +276,14 @@
       "title": "设计产出物生成",
       "description": "生成概要设计文档、代码目录骨架、核心接口定义",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-010"],
       "dependencies": [12],
-      "ui": false
+      "ui": false,
+      "st_case_count": 17,
+      "st_case_path": "docs/test-cases/feature-13-design-artifact-generation.md",
+      "git_sha": "9b9854a",
+      "report_path": "docs/report/feature-13-design-artifact-generation-report.md"
     },
     {
       "id": 14,
