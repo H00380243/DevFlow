@@ -253,6 +253,7 @@
       "dependencies": [10],
       "ui": false,
       "st_case_count": 10,
+      "git_sha": "5e1a0ca",
       "report_path": "docs/report/feature-11-rejection-notification-report.md"
     },
     {

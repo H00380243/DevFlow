@@ -267,6 +267,7 @@ Progress: 11/23 · Last: F011 (评审驳回通知与归档, 2026-07-07) · Next:
 
 ### Feature #11: 评审驳回通知与归档 — PASS
 - Completed: 2026-07-07
+- Git: 5e1a0ca feat(F011): 评审驳回通知与归档 — IM驳回通知、格式消息、退避重试
 - TDD: green ✓ (10/10)
 - Quality Gates: 97% line, 100% branch (rejection_notification.py)
 - Feature-ST: Skipped (user requested)

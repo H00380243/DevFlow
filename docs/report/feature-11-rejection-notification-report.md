@@ -5,7 +5,7 @@
 **Category**: core
 **Priority**: high
 **Completion Date**: 2026-07-07
-**Git SHA**: (pending commit)
+**Git SHA**: 5e1a0ca
 
 ---
 
