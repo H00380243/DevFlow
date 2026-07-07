@@ -296,10 +296,20 @@
 - Tests: 17 tests covering FUNC, BNDRY categories
 - Key components: DesignOutputHandler, UploadFailedError, document generation, interface validation, upload retry, state transition (IN_DESIGN→DESIGN_PENDING_CONFIRM), IM notification
 
+### Feature #14: 设计确认门与迭代 — PASS
+- Completed: 2026-07-08
+- TDD: green ✓ (24/24)
+- Quality Gates: 87% line, 71% branch (design_confirmation_handler.py)
+- Feature-ST: Skipped (user requested)
+- Inline Check: PASS
+- Files: app/core/design_confirmation_handler.py (new), app/core/state_machine.py (modified), app/core/command_executor.py (modified), tests/test_design_confirmation_handler.py (new), docs/features/2026-07-08-F014-design-confirmation-gate.md (new)
+- Tests: 24 tests covering FUNC, BNDRY, INTG categories
+- Key components: DesignConfirmationHandler, ConfirmationTimeoutMonitor, EmptyRejectReasonError, confirm/reject routing, 3-round retry limit, 4h timeout escalation
+
 ---
 
 ## Current State
-Progress: 13/23 · Last: F013 (设计产出物生成, 2026-07-08) · Next: F014 (设计确认门与迭代)
+Progress: 14/23 · Last: F014 (设计确认门与迭代, 2026-07-08) · Next: F015 (实施团代码生成)
 
 ## Session Log
 

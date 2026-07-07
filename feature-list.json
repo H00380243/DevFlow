@@ -291,10 +291,14 @@
       "title": "设计确认门与迭代",
       "description": "实现设计确认/驳回、3 轮迭代上限、历史版本保留",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-011", "FR-012"],
       "dependencies": [13],
-      "ui": false
+      "ui": false,
+      "st_case_count": 24,
+      "st_case_path": "docs/test-cases/feature-14-design-confirmation-gate.md",
+      "git_sha": "718f373",
+      "report_path": "docs/report/feature-14-design-confirmation-gate-report.md"
     },
     {
       "id": 15,

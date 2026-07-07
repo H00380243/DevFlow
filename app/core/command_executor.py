@@ -20,7 +20,10 @@ from app.core.command_parser import (
 from app.core.permission_checker import PermissionChecker
 from app.core.state_machine import RequirementNotFoundError, StateMachine, Status
 
+from app.core.design_confirmation_handler import EmptyRejectReasonError
+
 if TYPE_CHECKING:
+    from app.core.design_confirmation_handler import DesignConfirmationHandler
     from app.core.review_aggregation import ArbitrationHandler
 
 
@@ -92,12 +95,14 @@ class CommandExecutor:
     """Orchestrates command parsing, permission checking, and execution."""
 
     def __init__(self, state_machine: StateMachine | None = None,
-                 arbitration_handler: "ArbitrationHandler | None" = None):
+                 arbitration_handler: "ArbitrationHandler | None" = None,
+                 design_confirmation_handler: "DesignConfirmationHandler | None" = None):
         self._parser = CommandParser()
         self._permission_checker = PermissionChecker()
         self._query_executor = QueryExecutor()
         self._state_machine = state_machine
         self._arbitration_handler = arbitration_handler
+        self._design_confirmation_handler = design_confirmation_handler
 
     def execute(self, sender_id: str, command_text: str, db: Session) -> CommandResult:
         """Execute a command from IM text.
@@ -159,6 +164,38 @@ class CommandExecutor:
                             )
                     except RequirementNotFoundError:
                         pass
+
+            # F014: Route DESIGN_PENDING_CONFIRM commands
+            if self._state_machine is not None and self._design_confirmation_handler is not None:
+                if isinstance(command, (ConfirmCommand, RejectCommand)):
+                    try:
+                        current_status = self._state_machine.get_status(
+                            command.requirement_id
+                        )
+                        if current_status == Status.DESIGN_PENDING_CONFIRM:
+                            if isinstance(command, ConfirmCommand):
+                                self._design_confirmation_handler.handle_confirm(
+                                    command.requirement_id, sender_id
+                                )
+                                return CommandResult(
+                                    status="ok",
+                                    message=f"已确认 {command.requirement_id}",
+                                )
+                            elif isinstance(command, RejectCommand):
+                                self._design_confirmation_handler.handle_reject(
+                                    command.requirement_id, sender_id,
+                                    getattr(command, 'reason', ''),
+                                )
+                                msg = f"已驳回 {command.requirement_id}"
+                                if command.reason:
+                                    msg = msg + " " + command.reason
+                                return CommandResult(
+                                    status="ok", message=msg
+                                )
+                    except RequirementNotFoundError:
+                        pass
+                    except EmptyRejectReasonError as e:
+                        return CommandResult(status="error", message=str(e))
 
             db.execute(
                 text(

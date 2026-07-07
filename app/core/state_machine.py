@@ -90,6 +90,7 @@ class StateTransitionTable:
             # DESIGN_PENDING_CONFIRM transitions
             (Status.DESIGN_PENDING_CONFIRM, Event.DESIGN_CONFIRM): Status.DESIGN_CONFIRMED,
             (Status.DESIGN_PENDING_CONFIRM, Event.DESIGN_REJECT): Status.DESIGN_REJECTED,
+            (Status.DESIGN_PENDING_CONFIRM, Event.TIMEOUT): Status.DESIGN_PENDING_CONFIRM,
             # DESIGN_REJECTED transitions
             (Status.DESIGN_REJECTED, Event.DESIGN_RETRY): Status.IN_DESIGN,
             (Status.DESIGN_REJECTED, Event.MAX_RETRY): Status.TERMINATED,
