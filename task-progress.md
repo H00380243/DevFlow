@@ -341,6 +341,16 @@ Progress: 17/23 · Last: F017 (实施确认门, 2026-07-09) · Next: F018 (Git �
 - Tests: 18 tests covering FUNC, BNDRY categories
 - Key components: ImplementationConfirmationHandler, ConfirmationTimeoutMonitor, EmptyRejectReasonError
 
+### Feature #18: Git 提交与密钥检测 — PASS
+- Completed: 2026-07-09
+- TDD: green ✓ (21/21)
+- Quality Gates: 94% line (git_handler), 100% branch, total 95.06%
+- Feature-ST: Skipped (user requested)
+- Files: app/core/git_handler.py (new), tests/test_secret_detector.py (new), tests/test_git_handler.py (new), docs/features/2026-07-09-F018-git-commit-and-secret-detection.md (new), app/core/state_machine.py (modified)
+- Tests: 21 tests (11 secret_detector + 10 git_handler) covering FUNC, BNDRY categories
+- Key components: SecretDetector, GitHandler, GitCommitOrchestrator, SecretDetectedError, GitCommitFailedError, CredentialExpiredError
+- Note: state_machine.py modified to add IMPL_PENDING_ACCEPTANCE + TIMEOUT self-loop (F017 feature needed for F017 tests)
+
 
 ## Session Log
 

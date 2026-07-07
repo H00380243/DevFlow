@@ -23,6 +23,9 @@
 - F013 设计产出物生成 — DesignOutputHandler 生成结构化设计文档（JSON）、代码目录骨架、核心接口验证标记、待确认项标注、MinIO 上传（3 次指数退避重试）、状态流转（IN_DESIGN→DESIGN_PENDING_CONFIRM）、提交人 IM 通知；17 tests，覆盖率 100% line（design_output_handler.py）
 - F014 设计确认门与迭代 — DesignConfirmationHandler 确认/驳回处理、ConfirmationTimeoutMonitor 4h 超时检测与升级、3 轮驳回迭代上限（MAX_RETRY → TERMINATED）、EmptyRejectReasonError 空驳回原因校验、状态流转（DESIGN_CONFIRMED→IN_IMPLEMENTATION, DESIGN_REJECTED→IN_DESIGN）；24 tests，覆盖率 87% line（design_confirmation_handler.py）
 - F015 实施团代码生成 — ImplementationTeam 3 角色并行代码生成（后端开发/前端开发/质量保障）、ImplementationAgent + retry_with_backoff（复用 F008）、CodeOutput/CodeResult 聚合与去重、歧义标注假设（ambiguity_notes）、ImplementationResults 持久化；17 tests，覆盖率 91% line（implementation_team.py）
+- F016 冲烟验证 — SmokeVerifier 语法检查（ast.parse）、导入验证（importlib）、启动验证（exec）、VerificationResult 聚合；17 tests，覆盖率 96% line / 96% branch
+- F017 实施确认门 — ImplementationConfirmationHandler 确认/驳回处理（3次重试上限）、ConfirmationTimeoutMonitor 4h 超时检测与升级、状态流转（IMPL_APPROVED→DELIVERED, IMPL_REJECTED→IN_IMPLEMENTATION）、EMPTY_REJECT_REASON_ERROR；18 tests，覆盖率 95% line / ~82% branch
+- F018 Git 提交与密钥检测 — SecretDetector 8 模式密钥扫描（AWS/GitHub/Bearer/PEM）、GitHandler 分支创建/提交/推送、GitCommitOrchestrator 全流程编排（扫描→分支→提交→推送+3次重试）、push_enabled 开关、CredentialExpiredError 认证错误分离；21 tests，覆盖率 94% line（git_handler.py）/ 100% branch / 总覆盖 95.06%
 
 ### Changed
 - (none yet)

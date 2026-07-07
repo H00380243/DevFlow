@@ -347,10 +347,12 @@
       "title": "Git 提交与密钥检测",
       "description": "实现独立分支创建、Conventional Commits、密钥检测阻止",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-016"],
       "dependencies": [17],
-      "ui": false
+      "ui": false,
+      "st_case_count": 21,
+      "report_path": "docs/report/feature-18-git-commit-report.md"
     },
     {
       "id": 19,

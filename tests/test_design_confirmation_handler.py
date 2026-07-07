@@ -419,3 +419,27 @@ class TestMaxRetryPersistsToDb:
             assert row.current_status == "TERMINATED"
         finally:
             fresh_session.close()
+
+
+class TestRejectDirectlyToTerminated:
+    """T025: FUNC/branch — handle_reject when state machine returns TERMINATED directly."""
+
+    def test_reject_directly_terminated(self, handler, req_design_pending_confirm, push_fn, design_team_fn):
+        from unittest.mock import patch
+        from app.core.state_machine import Status
+        with patch.object(handler._sm, "transition", return_value=Status.TERMINATED):
+            handler.handle_reject("REQ-20260708-001", "user001", "超时终止")
+        push_fn.assert_called()
+        call_args = [str(c) for c in push_fn.call_args_list]
+        assert any("admin" in c for c in call_args)
+
+
+class TestStartConfirmationGateWrongStatus:
+    """T026: FUNC/branch — start_confirmation_gate returns early if status is wrong."""
+
+    def test_wrong_status_no_push(self, handler, req_design_pending_confirm, push_fn, db_session):
+        from app.core.state_machine import Event
+        handler._sm.transition("REQ-20260708-001", Event.DESIGN_CONFIRM, "user001")
+        push_fn.reset_mock()
+        handler.start_confirmation_gate("REQ-20260708-001", "http://doc", "user001")
+        push_fn.assert_not_called()
