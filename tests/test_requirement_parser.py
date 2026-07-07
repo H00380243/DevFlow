@@ -279,6 +279,7 @@ class TestConcurrentIdGeneration:
     """Test T: INTG — concurrent generate_id calls produce unique IDs."""
 
     def test_concurrent_generate_id_unique(self):
+        from datetime import datetime
         mock_session = MagicMock()
         # Simulate: first call returns None (empty DB), second returns 1
         call_count = [0]
@@ -296,10 +297,11 @@ class TestConcurrentIdGeneration:
 
         id1 = parser.generate_id()
         id2 = parser.generate_id()
+        today = datetime.now().strftime("%Y%m%d")
 
         assert id1 != id2
-        assert id1 == "REQ-20260705-001"
-        assert id2 == "REQ-20260705-002"
+        assert id1 == f"REQ-{today}-001"
+        assert id2 == f"REQ-{today}-002"
 
 
 class TestParseSqlInjection:
