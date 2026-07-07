@@ -1,5 +1,5 @@
 ## Goal
-- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F010 (人工仲裁处理).
+- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F011 (评审驳回通知与归档).
 
 ## Constraints & Preferences
 - SQLite replaces PostgreSQL; Huey with SQLite backend (both DB and queue)
@@ -50,12 +50,20 @@
   - 裁决规则: ≥2 APPROVE → auto-pass, ≥2 REJECT → arbitration, else → auto-pass
   - 200 total tests (18 F009-specific), 98% line / 98% branch coverage, ST skipped (user requested)
   - Report: `docs/report/feature-9-review-aggregation-report.md`
+- **F010 (人工仲裁处理): PASS** — git `0a78664`
+  - ArbitrationNotifier, ArbitrationTimeoutMonitor, CommandExecutor arbitration routing
+  - IM push retry 3x 指数退避, 4-hour timeout escalation, state-aware command routing
+  - 214 total tests (14 F010-specific), 98% line / 100% branch (arbitration_notification), ST skipped
+  - Report: `docs/report/feature-10-arbitration-notification-report.md`
 
 ### In Progress
-- **F010 (人工仲裁处理): FAILING** — Orient step pending
-  - Dependencies: F009 ✓
-  - SRS Trace: FR-007
+- **F011 (评审驳回通知与归档): FAILING** — Orient step pending
+  - Dependencies: F010 ✓
+  - SRS Trace: FR-008a, FR-008b
   - Next: Start Orient → Bootstrap → Config Gate
+
+### Blocked
+- None
 
 ### Blocked
 - None
@@ -71,29 +79,29 @@
 - **F007 implementation**: StateMachine with StateTransitionTable and PersistenceManager; 14 Status states, 10+6 Events, 16 valid transitions
 - **F008 implementation**: ReviewTeam with 3 parallel ReviewAgents (产品分析/价值评估/技术可行性); DimensionScores 4-dimension 1-5 scoring; Verdict enum; retry_with_backoff exponential backoff
 - **F009 implementation**: AggregationService with _decide pure function; ArbitrationHandler managing arbitration lifecycle (request, response, timeout, escalation); FinalDecision enum (APPROVED/NEEDS_ARBITRATION)
+- **F010 implementation**: ArbitrationNotifier with IM push retry 3x backoff; ArbitrationTimeoutMonitor with 4-hour timeout and 3-step escalation; CommandExecutor extended with state-aware arbitration routing
 
 ## Next Steps
-1. F010 Orient → Bootstrap → Config Gate
-2. F010 Feature Detailed Design via SubAgent
-3. F010 TDD Red-Green-Refactor cycle
-4. Continue F011–F023
+1. F011 Orient → Bootstrap → Config Gate
+2. F011 Feature Detailed Design via SubAgent
+3. F011 TDD Red-Green-Refactor cycle
+4. Continue F012–F023
 
 ## Critical Context
-- Progress: 9/23 features passing; Next: F010
+- Progress: 10/23 features passing; Next: F011
 - Critical path: F001→F002→F003→F004→F007→F008→F009→F010→F011
 - 23 features total, 7 milestones
-- F009 key classes: AggregationService, ArbitrationHandler, FinalDecision, ReviewResult
-- F009 SRS FR-006: 汇总3角色结论并裁决 (≥2通过自动通过, ≥2反对触发仲裁)
-- F009 contract C-006: `POST /api/reviews` accepts ReviewRequest, returns `{status, data}`; F009 consumes scores, drives state transitions
-- F009 depends on F008 (DimensionScores) and F007 (StateMachine)
-- Git HEAD: `c5921d4` (feat(F009): 评审结论汇总与裁决)
+- F010 key classes: ArbitrationNotifier, ArbitrationTimeoutMonitor, NotificationFailedError, TimeoutResult
+- F010 SRS FR-007: IM推送仲裁请求给管理员、超时4小时提醒、3次升级
+- F010 depends on F009 (ArbitrationHandler) and F007 (StateMachine)
+- Git HEAD: `0a78664` (feat(F010): 人工仲裁处理)
 
 ## Relevant Files
 - `docs/plans/2026-07-04-demandflow-srs.md` — Approved SRS (21 FRs, 11 NFRs); FR-004b is F006's srs_trace
 - `docs/plans/2026-07-04-demandflow-design.md` — Approved Design; §2.1 (IM integration), §4.2 (API contracts)
 - `docs/plans/2026-07-04-demandflow-ats.md` — Approved ATS
-- `feature-list.json` — Task inventory (F001-F009 passing, F010 failing)
-- `task-progress.md` — Progress log (9/23, last: F009, next: F010)
+- `feature-list.json` — Task inventory (F001-F010 passing, F011 failing)
+- `task-progress.md` — Progress log (10/23, last: F010, next: F011)
 - `app/__init__.py`, `app/main.py` — FastAPI app factory
 - `app/core/config.py` — pydantic-settings config (DATABASE_URL, HUEY_URL, IM_PLATFORM, IM_WEBHOOK_SECRET, etc.)
 - `app/core/database.py` — SQLAlchemy session (`get_db`)
@@ -108,6 +116,7 @@
 - `app/core/state_machine.py` — StateMachine (F007)
 - `app/core/review_scoring.py` — ReviewTeam, ReviewAgent (F008)
 - `app/core/review_aggregation.py` — AggregationService, ArbitrationHandler (F009)
+- `app/core/arbitration_notification.py` — ArbitrationNotifier, ArbitrationTimeoutMonitor (F010)
 - `app/models.py` — 8 SQLAlchemy models + init_db + Pydantic models
 - `alembic/` — Alembic migration config + `versions/0001_initial.py`
 - `tests/test_app.py`, `tests/test_config.py`, `tests/test_database.py`, `tests/test_queue.py` — F001 tests
@@ -119,6 +128,7 @@
 - `tests/test_state_machine.py` — F007 tests
 - `tests/test_review_scoring.py` — F008 tests
 - `tests/test_review_aggregation.py` — F009 tests
+- `tests/test_arbitration_notification.py` — F010 tests
 - `docs/features/2026-07-05-F001-project-skeleton.md` — F001 feature design
 - `docs/features/2026-07-05-F002-data-model.md` — F002 feature design
 - `docs/features/2026-07-05-F003-im-webhook.md` — F003 feature design
@@ -128,6 +138,7 @@
 - `docs/features/2026-07-05-F007-state-machine.md` — F007 feature design
 - `docs/features/2026-07-07-F008-review-scoring.md` — F008 feature design
 - `docs/features/2026-07-07-F009-review-aggregation.md` — F009 feature design
+- `docs/features/2026-07-07-F010-arbitration-notification.md` — F010 feature design
 - `docs/test-cases/feature-1-project-skeleton.md` — F001 ST cases
 - `docs/test-cases/feature-2-data-model.md` — F002 ST cases
 - `docs/test-cases/feature-3-im-webhook.md` — F003 ST cases
@@ -146,7 +157,8 @@
 - `docs/report/feature-7-state-machine-report.md` — F007 report
 - `docs/report/feature-8-review-scoring-report.md` — F008 report
 - `docs/report/feature-9-review-aggregation-report.md` — F009 report
-- `RELEASE_NOTES.md` — Updated with F001+F002+F003+F004+F005+F006+F007+F008+F009
+- `docs/report/feature-10-arbitration-notification-report.md` — F010 report
+- `RELEASE_NOTES.md` — Updated with F001+F002+F003+F004+F005+F006+F007+F008+F009+F010
 - `long-task-guide.md` — Worker session guide
 - `env-guide.md` — Service lifecycle
 - `.env.example` — Environment variable template
