@@ -1,5 +1,5 @@
 ## Goal
-- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F012 (设计团多角色产出).
+- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F014 (设计确认门与迭代).
 
 ## Constraints & Preferences
 - SQLite replaces PostgreSQL; Huey with SQLite backend (both DB and queue)
@@ -60,12 +60,22 @@
   - IM驳回通知 指数退避重试3次, 归档停流转由F009状态机实现
   - 224 total tests (10 F011-specific), 97% line / 100% branch, ST skipped
   - Report: `docs/report/feature-11-rejection-notification-report.md`
+- **F012 (设计团多角色产出): PASS** — git `1c27e72`
+  - DesignTeam, DesignAgent (3 角色: 产品设计/技术选型/合规风控), retry_with_backoff (复用 F008)
+  - [高风险] 标注, DesignParseError, AllAgentsFailedError
+  - 243 total tests (19 F012-specific), 95% line / 90% branch, ST skipped
+  - Report: `docs/report/feature-12-design-team-output-report.md`
+- **F013 (设计产出物生成): PASS** — git `c92dce9`
+  - DesignOutputHandler: complete_design, upload_document, _validate_interfaces, _generate_document
+  - Upload retry 3x 指数退避, 接口验证 (substring match MVP), 状态流转 IN_DESIGN→DESIGN_PENDING_CONFIRM
+  - 260 total tests (17 F013-specific), 100% line (design_output_handler), 97% overall, ST skipped
+  - Report: `docs/report/feature-13-design-artifact-generation-report.md`
 
 ### In Progress
-- **F012 (设计团多角色产出): FAILING** — Orient pending
-  - Dependencies: F007 ✓
-  - SRS Trace: FR-009
-  - Next: Start Orient → Bootstrap → Config Gate
+- **F014 (设计确认门与迭代)** — TDD pending
+  - Dependencies: F013 ✓
+  - SRS Trace: FR-011, FR-012
+  - Next: Orient → Feature Design → TDD
 
 ### Blocked
 - None
@@ -83,28 +93,29 @@
 - **F009 implementation**: AggregationService with _decide pure function; ArbitrationHandler managing arbitration lifecycle (request, response, timeout, escalation); FinalDecision enum (APPROVED/NEEDS_ARBITRATION)
 - **F010 implementation**: ArbitrationNotifier with IM push retry 3x backoff; ArbitrationTimeoutMonitor with 4-hour timeout and 3-step escalation; CommandExecutor extended with state-aware arbitration routing
 - **F011 implementation**: RejectionNotifier with format_rejection_message; 复用 F010 NotificationFailedError; 归档停流转由 F009 状态机实现
+- **F012 implementation**: DesignTeam with 3 parallel DesignAgents (产品设计/技术选型/合规风控); retry_with_backoff reuse from F008; DesignParseError, AllAgentsFailedError; [高风险] annotation
+- **F013 implementation**: DesignOutputHandler with injectable upload_fn/push_fn; upload_document 3-retry exponential backoff; _validate_interfaces substring match MVP; _generate_document JSON assembly
 
 ## Next Steps
-1. F012 Orient → Bootstrap → Config Gate
-2. F012 Feature Detailed Design via SubAgent
-3. F012 TDD Red-Green-Refactor cycle
-4. Continue F013–F023
+1. F014 Orient → Feature Design → TDD Red-Green-Refactor
+2. Continue F015–F023
 
 ## Critical Context
-- Progress: 11/23 features passing; Next: F012
-- Critical path: F001→F002→F003→F004→F007→F008→F009→F010→F011
+- Progress: 13/23 features passing; Next: F014
+- Critical path: F001→F002→F003→F004→F007→F008→F009→F010→F011→F012→F013
 - 23 features total, 7 milestones
-- F011 key classes: RejectionNotifier, format_rejection_message, NotificationFailedError (复用)
-- F011 SRS FR-008a/FR-008b: IM驳回通知 + 归档（停流转由状态机实现）
-- F011 depends on F010 (ArbitrationNotifier) and F009 (ArbitrationHandler)
-- Git HEAD: `5e1a0ca` (feat(F011): 评审驳回通知与归档)
+- F013 key classes: DesignOutputHandler, UploadFailedError
+- F013 SRS FR-010: 生成结构化设计文档+代码目录骨架+核心接口定义+待确认项标注+存储失败重试
+- F013 depends on F012 (DesignTeam) for design outputs
+- F013 design assumption: interface derivability uses substring match (method name in requirement text) as MVP heuristic
+- Git HEAD: `c92dce9` (feat(F013): 设计产出物生成)
 
 ## Relevant Files
 - `docs/plans/2026-07-04-demandflow-srs.md` — Approved SRS (21 FRs, 11 NFRs); FR-004b is F006's srs_trace
 - `docs/plans/2026-07-04-demandflow-design.md` — Approved Design; §2.1 (IM integration), §4.2 (API contracts)
 - `docs/plans/2026-07-04-demandflow-ats.md` — Approved ATS
-- `feature-list.json` — Task inventory (F001-F011 passing, F012 failing)
-- `task-progress.md` — Progress log (11/23, last: F011, next: F012)
+- `feature-list.json` — Task inventory (F001-F013 passing, F014 failing)
+- `task-progress.md` — Progress log (13/23, last: F013, next: F014)
 - `app/__init__.py`, `app/main.py` — FastAPI app factory
 - `app/core/config.py` — pydantic-settings config (DATABASE_URL, HUEY_URL, IM_PLATFORM, IM_WEBHOOK_SECRET, etc.)
 - `app/core/database.py` — SQLAlchemy session (`get_db`)
@@ -121,6 +132,8 @@
 - `app/core/review_aggregation.py` — AggregationService, ArbitrationHandler (F009)
 - `app/core/arbitration_notification.py` — ArbitrationNotifier, ArbitrationTimeoutMonitor (F010)
 - `app/core/rejection_notification.py` — RejectionNotifier (F011)
+- `app/core/design_team.py` — DesignTeam, DesignAgent (F012)
+- `app/core/design_output_handler.py` — DesignOutputHandler (F013)
 - `app/models.py` — 8 SQLAlchemy models + init_db + Pydantic models
 - `alembic/` — Alembic migration config + `versions/0001_initial.py`
 - `tests/test_app.py`, `tests/test_config.py`, `tests/test_database.py`, `tests/test_queue.py` — F001 tests
@@ -134,6 +147,8 @@
 - `tests/test_review_aggregation.py` — F009 tests
 - `tests/test_arbitration_notification.py` — F010 tests
 - `tests/test_rejection_notification.py` — F011 tests
+- `tests/test_design_team.py` — F012 tests
+- `tests/test_design_output_handler.py` — F013 tests
 - `docs/features/2026-07-05-F001-project-skeleton.md` — F001 feature design
 - `docs/features/2026-07-05-F002-data-model.md` — F002 feature design
 - `docs/features/2026-07-05-F003-im-webhook.md` — F003 feature design
@@ -145,6 +160,8 @@
 - `docs/features/2026-07-07-F009-review-aggregation.md` — F009 feature design
 - `docs/features/2026-07-07-F010-arbitration-notification.md` — F010 feature design
 - `docs/features/2026-07-07-F011-rejection-notification.md` — F011 feature design
+- `docs/features/2026-07-08-F012-design-team-output.md` — F012 feature design
+- `docs/features/2026-07-08-F013-design-artifact-generation.md` — F013 feature design
 - `docs/test-cases/feature-1-project-skeleton.md` — F001 ST cases
 - `docs/test-cases/feature-2-data-model.md` — F002 ST cases
 - `docs/test-cases/feature-3-im-webhook.md` — F003 ST cases
@@ -165,7 +182,9 @@
 - `docs/report/feature-9-review-aggregation-report.md` — F009 report
 - `docs/report/feature-10-arbitration-notification-report.md` — F010 report
 - `docs/report/feature-11-rejection-notification-report.md` — F011 report
-- `RELEASE_NOTES.md` — Updated with F001+F002+F003+F004+F005+F006+F007+F008+F009+F010+F011
+- `docs/report/feature-12-design-team-output-report.md` — F012 report
+- `docs/report/feature-13-design-artifact-generation-report.md` — F013 report
+- `RELEASE_NOTES.md` — Updated with F001+F002+F003+F004+F005+F006+F007+F008+F009+F010+F011+F012+F013
 - `long-task-guide.md` — Worker session guide
 - `env-guide.md` — Service lifecycle
 - `.env.example` — Environment variable template
