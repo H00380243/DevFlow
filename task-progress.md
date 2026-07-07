@@ -309,7 +309,7 @@
 ---
 
 ## Current State
-Progress: 15/23 · Last: F015 (实施团代码生成, 2026-07-08) · Next: F016 (冲烟验证)
+Progress: 16/23 · Last: F016 (冲烟验证, 2026-07-09) · Next: F017 (实施确认门)
 
 ### Feature #15: 实施团代码生成 — PASS
 - Feature Design: PASS (SubAgent) — 12 test inventory rows, 67% negative ratio
@@ -322,7 +322,14 @@ Progress: 15/23 · Last: F015 (实施团代码生成, 2026-07-08) · Next: F016 
 - Key components: ImplementationTeam, ImplementationAgent, CodeOutput, CodeResult, CodeParseError, AllAgentsFailedError
 - Coverage: 91% line, branch threshold met
 
-### Feature #16: 冲烟验证 — TDD pending
+### Feature #16: 冲烟验证 — PASS
+- Completed: 2026-07-09
+- TDD: green ✓ (17/17)
+- Quality Gates: 96% line, 96% branch
+- Feature-ST: Skipped (user requested)
+- Files: app/core/smoke_verification.py (new), tests/test_smoke_verification.py (new), docs/features/2026-07-09-F016-smoke-verification.md (new)
+- Tests: 17 tests covering FUNC, BNDRY categories
+- Key components: SmokeVerifier, VerificationResult, check_syntax/check_imports/check_startup
 
 
 ## Session Log

@@ -320,10 +320,13 @@
       "title": "冲烟验证",
       "description": "实现语法/编译检查、导入检查、启动检查",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-014"],
       "dependencies": [15],
-      "ui": false
+      "ui": false,
+      "st_case_count": 17,
+      "st_case_path": "docs/test-cases/feature-16-smoke-verification.md",
+      "report_path": "docs/report/feature-16-smoke-verification-report.md"
     },
     {
       "id": 17,
