@@ -334,10 +334,12 @@
       "title": "实施确认门",
       "description": "实现实施结果确认/驳回、3 轮迭代上限",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-015"],
       "dependencies": [16],
-      "ui": false
+      "ui": false,
+      "st_case_count": 18,
+      "report_path": "docs/report/feature-17-implementation-confirmation-gate-report.md"
     },
     {
       "id": 18,

@@ -102,6 +102,7 @@ class StateTransitionTable:
             # IMPL_PENDING_ACCEPTANCE transitions
             (Status.IMPL_PENDING_ACCEPTANCE, Event.IMPL_CONFIRM): Status.IMPL_APPROVED,
             (Status.IMPL_PENDING_ACCEPTANCE, Event.IMPL_REJECT): Status.IMPL_REJECTED,
+            (Status.IMPL_PENDING_ACCEPTANCE, Event.TIMEOUT): Status.IMPL_PENDING_ACCEPTANCE,
             # IMPL_REJECTED transitions
             (Status.IMPL_REJECTED, Event.IMPL_RETRY): Status.IN_IMPLEMENTATION,
             (Status.IMPL_REJECTED, Event.MAX_RETRY): Status.TERMINATED,
