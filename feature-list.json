@@ -262,10 +262,13 @@
       "title": "设计团多角色产出",
       "description": "实现 3 角色设计 Agent 并行产出（产品设计、技术选型、合规风控）",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-009"],
       "dependencies": [7],
-      "ui": false
+      "ui": false,
+      "st_case_count": 19,
+      "git_sha": "1c27e72",
+      "report_path": "docs/report/feature-12-design-team-output-report.md"
     },
     {
       "id": 13,

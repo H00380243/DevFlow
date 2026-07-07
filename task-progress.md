@@ -1,7 +1,5 @@
 # Task Progress — demandflow
 
-## Current State
-Progress: 11/23 · Last: F011 (评审驳回通知与归档, 2026-07-07) · Next: F012 (设计团多角色产出)
 
 ### Session 1 — 2026-07-05 (Resume) — Orient
 **Phase**: Worker (long-task-work) — resuming F001 after prior interrupted session
@@ -276,7 +274,21 @@ Progress: 11/23 · Last: F011 (评审驳回通知与归档, 2026-07-07) · Next:
 - Tests: 10 tests covering FUNC, BNDRY categories
 - Key components: RejectionNotifier, format_rejection_message, NotificationFailedError (reuse from F010)
 
+### Feature #12: 设计团多角色产出 — PASS
+- Completed: 2026-07-08
+- Git: 1c27e72 feat(F012): 设计团多角色产出 — 3角色DesignAgent并行设计，指数退避重试
+- TDD: green ✓ (19/19)
+- Quality Gates: 95% line, 90% branch
+- Feature-ST: Skipped (user requested)
+- Inline Check: PASS
+- Files: app/core/design_team.py (new), tests/test_design_team.py (new), docs/features/2026-07-08-F012-design-team-output.md (new)
+- Tests: 19 tests covering FUNC, BNDRY, PERF categories
+- Key components: DesignTeam, DesignAgent, DesignOutput, DesignResult, retry_with_backoff (reuse from F008), DesignParseError, AllAgentsFailedError
+
 ---
+
+## Current State
+Progress: 12/23 · Last: F012 (设计团多角色产出, 2026-07-08) · Next: F013 (设计产出物生成)
 
 ## Session Log
 

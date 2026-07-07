@@ -19,6 +19,7 @@
 - F009 评审结论汇总与裁决 — AggregationService 汇总 3 角色结论、ArbitrationHandler 仲裁生命周期管理、_decide 裁决规则（≥2通过自动通过，≥2反对触发仲裁）；18 tests，覆盖率 98% line / 98% branch
 - F010 人工仲裁处理 — ArbitrationNotifier IM 推送仲裁请求（指数退避重试 3 次）、ArbitrationTimeoutMonitor 4 小时超时检测与 3 次升级、CommandExecutor 仲裁指令路由；14 tests，覆盖率 98% line / 100% branch
 - F011 评审驳回通知与归档 — RejectionNotifier 驳回通知（指数退避重试 3 次）、format_rejection_message 格式化中文消息、复用 F010 NotificationFailedError；10 tests，覆盖率 97% line / 100% branch
+- F012 设计团多角色产出 — DesignTeam 协调 3 角色（产品设计、技术选型、合规风控）DesignAgent 并行产出概要设计、指数退避重试、全失败通知、高风险 [高风险] 标注；19 tests，覆盖率 95% line / 90% branch
 
 ### Changed
 - (none yet)
