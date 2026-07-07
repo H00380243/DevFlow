@@ -1,4 +1,8 @@
-"""Command Executor — F005/F006 状态变更与查询指令系统."""
+"""Command Executor — F005/F006 状态变更与查询指令系统 / F010 人工仲裁处理."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 from sqlalchemy import text
@@ -11,8 +15,13 @@ from app.core.command_parser import (
     ConfirmCommand,
     ListCommand,
     ProgressCommand,
+    RejectCommand,
 )
 from app.core.permission_checker import PermissionChecker
+from app.core.state_machine import RequirementNotFoundError, StateMachine, Status
+
+if TYPE_CHECKING:
+    from app.core.review_aggregation import ArbitrationHandler
 
 
 class CommandResult(BaseModel):
@@ -82,10 +91,13 @@ class QueryExecutor:
 class CommandExecutor:
     """Orchestrates command parsing, permission checking, and execution."""
 
-    def __init__(self):
+    def __init__(self, state_machine: StateMachine | None = None,
+                 arbitration_handler: "ArbitrationHandler | None" = None):
         self._parser = CommandParser()
         self._permission_checker = PermissionChecker()
         self._query_executor = QueryExecutor()
+        self._state_machine = state_machine
+        self._arbitration_handler = arbitration_handler
 
     def execute(self, sender_id: str, command_text: str, db: Session) -> CommandResult:
         """Execute a command from IM text.
@@ -124,6 +136,29 @@ class CommandExecutor:
                     status="error",
                     message=f"需求 {command.requirement_id} 不存在",
                 )
+
+            # F010: Check for arbitration response routing
+            if self._state_machine is not None and self._arbitration_handler is not None:
+                if isinstance(command, (ConfirmCommand, RejectCommand)):
+                    try:
+                        current_status = self._state_machine.get_status(
+                            command.requirement_id
+                        )
+                        if current_status == Status.PENDING_ARBITRATION:
+                            approved = isinstance(command, ConfirmCommand)
+                            reason = getattr(command, 'reason', '')
+                            self._arbitration_handler.handle_response(
+                                req_id=command.requirement_id,
+                                approved=approved,
+                                reason=reason,
+                                admin_id=sender_id,
+                            )
+                            return CommandResult(
+                                status="ok",
+                                message=f"仲裁处理成功: {command.requirement_id}",
+                            )
+                    except RequirementNotFoundError:
+                        pass
 
             db.execute(
                 text(

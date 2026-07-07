@@ -17,6 +17,7 @@
 - F007 状态机引擎 — StateMachine 需求全生命周期状态流转、StateTransitionTable 合法迁移表、PersistenceManager SQLite 持久化、Status/Event 枚举；23 tests，覆盖率 98% line / 98% branch；18 ISO 29119 验收用例全部通过
 - F008 评审团多角色打分 — ReviewTeam 多角色并行打分、ReviewAgent 4维度评分、Verdict 裁决枚举、指数退避重试、全失败通知；15 tests，覆盖率 96% line / ~93% branch
 - F009 评审结论汇总与裁决 — AggregationService 汇总 3 角色结论、ArbitrationHandler 仲裁生命周期管理、_decide 裁决规则（≥2通过自动通过，≥2反对触发仲裁）；18 tests，覆盖率 98% line / 98% branch
+- F010 人工仲裁处理 — ArbitrationNotifier IM 推送仲裁请求（指数退避重试 3 次）、ArbitrationTimeoutMonitor 4 小时超时检测与 3 次升级、CommandExecutor 仲裁指令路由；14 tests，覆盖率 98% line / 100% branch
 
 ### Changed
 - (none yet)

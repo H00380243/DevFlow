@@ -234,10 +234,12 @@
       "title": "人工仲裁处理",
       "description": "实现仲裁请求推送、管理员响应处理、超时提醒与升级",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-007"],
       "dependencies": [9],
-      "ui": false
+      "ui": false,
+      "st_case_count": 14,
+      "report_path": "docs/report/feature-10-arbitration-notification-report.md"
     },
     {
       "id": 11,
