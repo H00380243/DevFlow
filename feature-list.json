@@ -239,6 +239,7 @@
       "dependencies": [9],
       "ui": false,
       "st_case_count": 14,
+      "git_sha": "0a78664",
       "report_path": "docs/report/feature-10-arbitration-notification-report.md"
     },
     {
