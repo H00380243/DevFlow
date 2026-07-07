@@ -309,7 +309,21 @@
 ---
 
 ## Current State
-Progress: 14/23 · Last: F014 (设计确认门与迭代, 2026-07-08) · Next: F015 (实施团代码生成)
+Progress: 15/23 · Last: F015 (实施团代码生成, 2026-07-08) · Next: F016 (冲烟验证)
+
+### Feature #15: 实施团代码生成 — PASS
+- Feature Design: PASS (SubAgent) — 12 test inventory rows, 67% negative ratio
+- Design doc: `docs/features/2026-07-08-F015-implementation-code-generation.md`
+- TDD: green ✓ (17/17)
+- Quality Gates: 91% line (implementation_team.py)
+- Feature-ST: Skipped (user requested)
+- Files: app/core/implementation_team.py (new), tests/test_implementation_team.py (new)
+- Tests: 17 tests covering FUNC, BNDRY, PERF, INTG categories
+- Key components: ImplementationTeam, ImplementationAgent, CodeOutput, CodeResult, CodeParseError, AllAgentsFailedError
+- Coverage: 91% line, branch threshold met
+
+### Feature #16: 冲烟验证 — TDD pending
+
 
 ## Session Log
 

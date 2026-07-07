@@ -1,5 +1,5 @@
 ## Goal
-- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F015 (实施团代码生成).
+- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F016 (冲烟验证).
 
 ## Constraints & Preferences
 - SQLite replaces PostgreSQL; Huey with SQLite backend (both DB and queue)
@@ -74,9 +74,13 @@
   - DesignConfirmationHandler (confirm/reject), ConfirmationTimeoutMonitor (4h timeout), state machine TIMEOUT self-loop
   - 24 tests, 87% line / 71% branch (design_confirmation_handler.py), ST skipped
   - Report: `docs/report/feature-14-design-confirmation-gate-report.md`
+- **F015 (实施团代码生成): PASS** — git `8ca5496` (next commit)
+  - ImplementationTeam, ImplementationAgent, CodeOutput/CodeResult, retry_with_backoff (reuse F008)
+  - 17 tests, 91% line (implementation_team.py), ST skipped
+  - Report: `docs/report/feature-15-implementation-code-generation-report.md`
 
 ### In Progress
-- **F015 (实施团代码生成)** — TDD pending
+- **F016 (冲烟验证)** — TDD pending
   - Dependencies: F007 ✓ (state machine), F014 ✓ (F014 provides design artifacts for F015)
   - SRS Trace: FR-013
   - Next: Orient → Feature Design → TDD
@@ -101,18 +105,20 @@
 - **F013 implementation**: DesignOutputHandler with injectable upload_fn/push_fn; upload_document 3-retry exponential backoff; _validate_interfaces substring match MVP; _generate_document JSON assembly
 
 ## Next Steps
-1. F015 Orient → Feature Design → TDD Red-Green-Refactor
-2. Continue F016–F023
+1. F016 Orient → Feature Design → TDD Red-Green-Refactor
+2. Continue F017–F023
 
 ## Critical Context
-- Progress: 14/23 features passing; Next: F015
+- Progress: 15/23 features passing; Next: F016
 - Critical path: F001→F002→F003→F004→F007→F008→F009→F010→F011→F012→F013
 - 23 features total, 7 milestones
 - F013 key classes: DesignOutputHandler, UploadFailedError
 - F013 SRS FR-010: 生成结构化设计文档+代码目录骨架+核心接口定义+待确认项标注+存储失败重试
 - F013 depends on F012 (DesignTeam) for design outputs
 - F013 design assumption: interface derivability uses substring match (method name in requirement text) as MVP heuristic
-- Git HEAD: `718f373` (waiting for F014 commit)
+- F015 key classes: ImplementationTeam, ImplementationAgent, CodeOutput/CodeResult
+- F015 depends on F007 (state machine) + F012/13/14 (design artifacts)
+- Git HEAD: `8ca5496` (waiting for F015 commit)
 
 ## Relevant Files
 - `docs/plans/2026-07-04-demandflow-srs.md` — Approved SRS (21 FRs, 11 NFRs); FR-004b is F006's srs_trace
@@ -139,6 +145,7 @@
 - `app/core/design_team.py` — DesignTeam, DesignAgent (F012)
 - `app/core/design_output_handler.py` — DesignOutputHandler (F013)
 - `app/core/design_confirmation_handler.py` — DesignConfirmationHandler, ConfirmationTimeoutMonitor (F014)
+- `app/core/implementation_team.py` — ImplementationTeam, ImplementationAgent (F015)
 - `app/models.py` — 8 SQLAlchemy models + init_db + Pydantic models
 - `alembic/` — Alembic migration config + `versions/0001_initial.py`
 - `tests/test_app.py`, `tests/test_config.py`, `tests/test_database.py`, `tests/test_queue.py` — F001 tests

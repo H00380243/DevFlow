@@ -21,7 +21,8 @@
 - F011 评审驳回通知与归档 — RejectionNotifier 驳回通知（指数退避重试 3 次）、format_rejection_message 格式化中文消息、复用 F010 NotificationFailedError；10 tests，覆盖率 97% line / 100% branch
 - F012 设计团多角色产出 — DesignTeam 协调 3 角色（产品设计、技术选型、合规风控）DesignAgent 并行产出概要设计、指数退避重试、全失败通知、高风险 [高风险] 标注；19 tests，覆盖率 95% line / 90% branch
 - F013 设计产出物生成 — DesignOutputHandler 生成结构化设计文档（JSON）、代码目录骨架、核心接口验证标记、待确认项标注、MinIO 上传（3 次指数退避重试）、状态流转（IN_DESIGN→DESIGN_PENDING_CONFIRM）、提交人 IM 通知；17 tests，覆盖率 100% line（design_output_handler.py）
-- F014 设计确认门与迭代 — DesignConfirmationHandler 确认/驳回处理、ConfirmationTimeoutMonitor 4h 超时检测与升级、3 轮驳回迭代上限（MAX_RETRY ≈ TERMINATED）、EmptyRejectReasonError 空驳回原因校验、状态流转（DESIGN_CONFIRMED→IN_IMPLEMENTATION, DESIGN_REJECTED→IN_DESIGN）；24 tests，覆盖率 87% line（design_confirmation_handler.py）
+- F014 设计确认门与迭代 — DesignConfirmationHandler 确认/驳回处理、ConfirmationTimeoutMonitor 4h 超时检测与升级、3 轮驳回迭代上限（MAX_RETRY → TERMINATED）、EmptyRejectReasonError 空驳回原因校验、状态流转（DESIGN_CONFIRMED→IN_IMPLEMENTATION, DESIGN_REJECTED→IN_DESIGN）；24 tests，覆盖率 87% line（design_confirmation_handler.py）
+- F015 实施团代码生成 — ImplementationTeam 3 角色并行代码生成（后端开发/前端开发/质量保障）、ImplementationAgent + retry_with_backoff（复用 F008）、CodeOutput/CodeResult 聚合与去重、歧义标注假设（ambiguity_notes）、ImplementationResults 持久化；17 tests，覆盖率 91% line（implementation_team.py）
 
 ### Changed
 - (none yet)

@@ -306,10 +306,13 @@
       "title": "实施团代码生成",
       "description": "按设计稿生成可运行源代码",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-013"],
       "dependencies": [7],
-      "ui": false
+      "ui": false,
+      "st_case_count": 17,
+      "st_case_path": "docs/test-cases/feature-15-implementation-code-generation.md",
+      "report_path": "docs/report/feature-15-implementation-code-generation-report.md"
     },
     {
       "id": 16,
