@@ -248,10 +248,12 @@
       "title": "评审驳回通知与归档",
       "description": "实现驳回 IM 通知、需求归档、停止流转",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-008a", "FR-008b"],
       "dependencies": [10],
-      "ui": false
+      "ui": false,
+      "st_case_count": 10,
+      "report_path": "docs/report/feature-11-rejection-notification-report.md"
     },
     {
       "id": 12,
