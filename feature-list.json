@@ -373,11 +373,13 @@
       "title": "看板首页指标",
       "description": "实现总览指标卡片（总需求数、评审通过率、进行中需求数）",
       "priority": "medium",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-018"],
       "dependencies": [2],
       "ui": true,
       "ui_entry": "/",
+      "st_case_count": 18,
+      "report_path": "docs/report/feature-20-dashboard-metrics-report.md",
       "verification_steps": [
         "[devtools] Navigate / → EXPECT: page title '总览', 3 metric cards with labels '总需求数', '评审通过率', '进行中需求'; REJECT: blank page, missing cards, console errors"
       ]

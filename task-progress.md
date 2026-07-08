@@ -361,6 +361,16 @@ Progress: 17/23 · Last: F017 (实施确认门, 2026-07-09) · Next: F018 (Git �
 - Key components: DeliveryArchiveHandler (create_archive, format_archive_message), reuse of StateMachine.transition, NotificationFailedError
 - Coverage: 95.15% total — line/branch gates met
 
+### Feature #20: 看板首页指标 — PASS
+- Completed: 2026-07-09
+- TDD: green ✓ (10 backend + 8 frontend = 18 tests)
+- Quality Gates: 95% total coverage
+- Feature-ST: Skipped (user requested)
+- Files: app/core/dashboard_service.py (new), app/main.py (modified), tests/test_dashboard_metrics.py (new), frontend/ (new Vite+React+AntD project)
+- Key components: DashboardService.get_metrics(), GET /api/dashboard/metrics, MetricCard, DashboardPage
+- Backend: 3 SQLAlchemy queries computing total_requirements, review_pass_rate, in_progress_count
+- Frontend: Ant Design v6, MetricCard with loading skeleton + error badge, DashboardPage with fetch + EmptyState
+
 
 ## Session Log
 

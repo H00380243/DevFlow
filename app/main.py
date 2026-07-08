@@ -54,4 +54,16 @@ def create_app() -> FastAPI:
         except WebhookProcessingError as e:
             raise HTTPException(status_code=500, detail=str(e))
 
+    @app.get("/api/dashboard/metrics")
+    async def dashboard_metrics():
+        """Return dashboard metrics (total requirements, review pass rate, in-progress count)."""
+        from app.core.dashboard_service import DashboardService
+        db = get_db().__next__()
+        try:
+            return DashboardService.get_metrics(db)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()
+
     return app
