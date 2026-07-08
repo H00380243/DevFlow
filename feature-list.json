@@ -407,11 +407,13 @@
       "title": "需求详情页",
       "description": "实现需求详情页（左右双栏布局）+ 状态流转时间线",
       "priority": "medium",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": [],
       "dependencies": [20, 21],
       "ui": true,
       "ui_entry": "/requirements/:id",
+      "st_case_count": 15,
+      "report_path": "docs/report/feature-22-requirement-detail-report.md",
       "verification_steps": [
         "[devtools] Navigate /requirements/REQ-20260704-001 → EXPECT: breadcrumb, requirement ID, status badge, timeline, action buttons; REJECT: 404, missing components"
       ]

@@ -88,4 +88,20 @@ def create_app() -> FastAPI:
         finally:
             db.close()
 
+    @app.get("/api/requirements/{req_id}")
+    async def get_requirement_detail(req_id: str):
+        """Return full detail of a single requirement by ID."""
+        from app.core.requirement_detail_service import RequirementDetailService
+        db = next(get_db())
+        try:
+            return RequirementDetailService.get_detail(db, req_id)
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e))
+        except LookupError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()
+
     return app

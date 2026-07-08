@@ -3,6 +3,7 @@ import { ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import { DashboardPage } from './pages/DashboardPage'
 import { RequirementsListPage } from './pages/RequirementsListPage'
+import { RequirementDetailPage } from './pages/RequirementDetailPage'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Routes>
             <Route path="/" element={<DashboardPage />} />
             <Route path="/requirements" element={<RequirementsListPage />} />
+            <Route path="/requirements/:id" element={<RequirementDetailPage />} />
           </Routes>
         </div>
       </ConfigProvider>
