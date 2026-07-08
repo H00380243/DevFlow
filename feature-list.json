@@ -424,11 +424,13 @@
       "title": "看板操作与 IM 同步",
       "description": "实现看板确认/驳回操作，同步 IM 通知",
       "priority": "medium",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-021"],
       "dependencies": [22],
       "ui": true,
       "ui_entry": "/requirements/:id",
+      "st_case_count": 13,
+      "report_path": "docs/report/feature-23-kanban-action-report.md",
       "verification_steps": [
         "[devtools] Navigate /requirements/:id → click '确认' button → EXPECT: modal appears, confirm action, status updates; REJECT: no modal, action fails"
       ]

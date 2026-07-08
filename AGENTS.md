@@ -98,22 +98,29 @@
   - DashboardService.get_metrics() (3 queries), GET /api/dashboard/metrics, MetricCard, DashboardPage
   - 18 tests (10 backend + 8 frontend Vitest), 95% total, ST skipped
   - Report: `docs/report/feature-20-dashboard-metrics-report.md`
-- **F021 (需求列表与筛选搜索): PASS** — git `waiting`
+- **F021 (需求列表与筛选搜索): PASS** — git `b6aaf9a`
   - RequirementsService.get_requirements() (paginated/filtered/search), GET /api/requirements endpoint
   - RequirementsListPage (Ant Design Table + Select + Search + Pagination), React Router routing
   - 18 tests (13 backend + 5 frontend Vitest), ST skipped
   - Report: `docs/report/feature-21-requirements-list-report.md`
+- **F022 (需求详情页): PASS** — git `5b5e800`
+  - RequirementDetailService.get_detail() (joined loads), GET /api/requirements/{id}
+  - RequirementDetailPage (left Descriptions + right Timeline), tags/badges/loading/error states
+  - 15 tests (10 backend + 5 frontend Vitest), ST skipped
+  - Report: `docs/report/feature-22-requirement-detail-report.md`
+- **F023 (看板操作与 IM 同步): PASS** — git `waiting`
+  - RequirementActionService.execute_action() (state machine confirm/reject), POST /api/requirements/{id}/action
+  - Confirm/Reject buttons + reject reason Modal on detail page
+  - 13 tests (8 backend + 5 frontend), ST skipped
+  - Report: `docs/report/feature-23-kanban-action-report.md`
 
-### In Progress
-- **F022 (需求详情页)** — pending implementation
-  - Dependencies: F020 ✓ (dashboard patterns), F021 ✓ (requirements service/list)
-  - Next: Feature Design → TDD
-- **F023 (看板操作与 IM 同步)** — pending implementation
-  - Dependencies: F022 ✓
-  - Next: Feature Design → TDD
+### Completed — All 23 features passing
 
 ### Blocked
 - None
+
+### Waiting
+- F023 commit pending
 
 ## Key Decisions
 - **Approach B (Monolith + Async Workers)**: FastAPI main + Huey workers
@@ -132,13 +139,12 @@
 - **F013 implementation**: DesignOutputHandler with injectable upload_fn/push_fn; upload_document 3-retry exponential backoff; _validate_interfaces substring match MVP; _generate_document JSON assembly
 
 ## Next Steps
-1. F022 (需求详情页) — Feature Design → TDD
-2. F023 (看板操作与 IM 同步) — Feature Design → TDD
+- All 23 features complete. Ready for System Testing (ST).
 
 ## Critical Context
-- Progress: 21/23 features passing; Next: F022, F023
-- Critical path: F001→F002→F003→F004→F007→F008→F009→F010→F011→F012→F013
-- 23 features total, 7 milestones
+- Progress: **23/23 features passing** — All milestones complete
+- Total tests: 419 backend pytest + 18 frontend Vitest = 437 total
+- Git HEAD: pending F023 commit
 
 ## Relevant Files
 - `docs/plans/2026-07-04-demandflow-srs.md` — Approved SRS (21 FRs, 11 NFRs); FR-004b is F006's srs_trace

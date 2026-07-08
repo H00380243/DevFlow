@@ -29,6 +29,8 @@
 - F019 交付档案与状态归档 — DeliveryArchiveHandler 全流程（档案JSON生成→MinIO上传3次退避重试→DB持久化→状态机IMPL_APPROVED→DELIVERED→IM通知3次退避重试）、TypeError 非重试异常直接传播、Upload失败通知管理员不影响已提交Git代码、NotificationFailedError 通知耗尽异常；19 tests，覆盖率 100% line（delivery_archive_handler.py）/ 总覆盖 95.15%
 - F020 看板首页指标 — DashboardService.get_metrics() 3 指标（总需求数/评审通过率/进行中数）、GET /api/dashboard/metrics 端点；前端 Vite + React 19 + Ant Design v6，MetricCard（加载骨架屏/错误徽章）、DashboardPage（EmptyState/自动刷新）；18 tests（10 后端 + 8 前端），覆盖率 95% 总覆盖
 - F021 需求列表与筛选搜索 — RequirementsService.get_requirements() 分页筛选搜索、GET /api/requirements 端点；前端 RequirementsListPage（Ant Design Table + Select + Search + Pagination）、React Router 路由；18 tests（13 后端 + 5 前端）
+- F022 需求详情页 — RequirementDetailService.get_detail() 关联加载评审/设计/实施/状态历史、GET /api/requirements/{id}；前端 RequirementDetailPage 左右双栏布局（Descriptions + Timeline）、标签/徽章/加载/错误状态；15 tests（10 后端 + 5 前端）
+- F023 看板操作与 IM 同步 — RequirementActionService.execute_action() 状态机流转（PENDING_REVIEW/DESIGN_CONFIRM/IMPL_CONFIRM 等）、POST /api/requirements/{id}/action；前端确认/驳回按钮（状态感知）+ 驳回原因 Modal；13 tests（8 后端 + 5 前端）
 
 ### Changed
 - (none yet)

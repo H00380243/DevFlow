@@ -352,6 +352,36 @@ Progress: 21/23 · Last: F021 (需求列表与筛选搜索, 2026-07-09) · Next:
 - Frontend: 6-column Table with Select filter bar (stage/status), Input.Search, pagination with total display, empty state
 - Report: docs/report/feature-21-requirements-list-report.md
 
+### Feature #22: 需求详情页 — PASS
+- Completed: 2026-07-09
+- TDD: green ✓ (10 backend + 5 frontend = 15 tests)
+- Quality Gates: ~93% total coverage
+- Feature-ST: Skipped (user requested)
+- Files: app/core/requirement_detail_service.py (new), app/main.py (modified), frontend/src/pages/RequirementDetailPage.tsx (new), frontend/src/pages/RequirementDetailPage.test.tsx (new), frontend/src/App.tsx (modified)
+- Key components: RequirementDetailService.get_detail(), GET /api/requirements/{id}, RequirementDetailPage (Descriptions + Timeline)
+- Backend: Joined load with review/design/implementation results and status history, sorted timeline
+- Frontend: Left info column + right Timeline column, tags/badges/loading/error states
+- Report: docs/report/feature-22-requirement-detail-report.md
+
+### Feature #23: 看板操作与 IM 同步 — PASS
+- Completed: 2026-07-09
+- TDD: green ✓ (8 backend + 5 frontend = 13 tests)
+- Quality Gates: ~93% total coverage
+- Feature-ST: Skipped (user requested)
+- Files: app/core/requirement_action_service.py (new), app/main.py (modified), frontend/src/pages/RequirementDetailPage.tsx (modified)
+- Key components: RequirementActionService.execute_action(), POST /api/requirements/{id}/action, confirm/reject buttons + reject modal
+- Backend: State machine transitions for PENDING_REVIEW / DESIGN_PENDING_CONFIRM / IMPL_PENDING_ACCEPTANCE / PENDING_ARBITRATION
+- Frontend: Action bar with confirm/reject buttons conditional on current status, reject reason Modal
+- Report: docs/report/feature-23-kanban-action-report.md
+
+---
+
+## Final State
+Progress: **23/23 ALL FEATURES COMPLETE** 🎉
+Last: F023 (看板操作与 IM 同步, 2026-07-09)
+Total tests: 419 backend pytest + 18 frontend Vitest = 437 total
+
+---
 
 ## Session Log
 

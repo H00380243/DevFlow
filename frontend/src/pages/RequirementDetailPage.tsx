@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Descriptions, Tag, Timeline, Badge, Card, Row, Col, Skeleton, Result, Button } from 'antd'
+import { Descriptions, Tag, Timeline, Badge, Card, Row, Col, Skeleton, Result, Button, Modal, Input, message } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 
 interface TimelineEntry {
@@ -47,13 +47,18 @@ const stageLabelMap: Record<string, string> = {
   implementation: '实施中',
 }
 
+const ACTIONABLE_STATUSES = ['PENDING_REVIEW', 'DESIGN_PENDING_CONFIRM', 'IMPL_PENDING_ACCEPTANCE', 'PENDING_ARBITRATION']
+
 export function RequirementDetailPage() {
   const { id } = useParams<{ id: string }>()
   const [data, setData] = useState<DetailData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [rejectModalOpen, setRejectModalOpen] = useState(false)
+  const [rejectReason, setRejectReason] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
 
-  useEffect(() => {
+  const fetchDetail = () => {
     if (!id) return
     setLoading(true)
     setError(null)
@@ -65,17 +70,57 @@ export function RequirementDetailPage() {
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
-  }, [id])
+  }
+
+  useEffect(() => { fetchDetail() }, [id])
+
+  const performAction = async (action: string, reason = '') => {
+    setActionLoading(true)
+    try {
+      const resp = await fetch(`/api/requirements/${id}/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, reason, user_id: 'current-user' }),
+      })
+      const result = await resp.json()
+      if (result.status === 'ok') {
+        message.success(result.message)
+        setRejectModalOpen(false)
+        setRejectReason('')
+        fetchDetail()
+      } else {
+        message.error(result.message)
+      }
+    } catch {
+      message.error('操作失败')
+    } finally {
+      setActionLoading(false)
+    }
+  }
 
   if (loading) return <Skeleton active paragraph={{ rows: 8 }} />
   if (error) return <Result status="error" title="加载失败" subTitle={error} extra={<Button type="primary" onClick={() => window.history.back()}>返回</Button>} />
   if (!data) return null
 
+  const isActionable = ACTIONABLE_STATUSES.includes(data.current_status)
+
   return (
     <div>
-      <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => window.history.back()} style={{ marginBottom: 16 }}>
-        返回列表
-      </Button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => window.history.back()}>
+          返回列表
+        </Button>
+        {isActionable && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button type="primary" loading={actionLoading} onClick={() => performAction('confirm')}>
+              确认
+            </Button>
+            <Button danger loading={actionLoading} onClick={() => setRejectModalOpen(true)}>
+              驳回
+            </Button>
+          </div>
+        )}
+      </div>
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={16}>
           <Card title="需求信息" variant="outlined">
@@ -128,6 +173,24 @@ export function RequirementDetailPage() {
           </Card>
         </Col>
       </Row>
+
+      <Modal
+        title="驳回原因"
+        open={rejectModalOpen}
+        onOk={() => performAction('reject', rejectReason)}
+        onCancel={() => { setRejectModalOpen(false); setRejectReason('') }}
+        confirmLoading={actionLoading}
+        okText="确认驳回"
+        cancelText="取消"
+        okButtonProps={{ danger: true }}
+      >
+        <Input.TextArea
+          rows={4}
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          placeholder="请输入驳回原因"
+        />
+      </Modal>
     </div>
   )
 }

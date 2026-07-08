@@ -104,4 +104,38 @@ def create_app() -> FastAPI:
         finally:
             db.close()
 
+    @app.post("/api/requirements/{req_id}/action")
+    async def requirement_action(req_id: str, body: dict):
+        """Execute a confirm/reject action on a requirement.
+
+        Body: {"action": "confirm|reject", "reason": "...", "user_id": "..."}
+        """
+        from app.core.requirement_action_service import (
+            RequirementActionService,
+            ActionValidationError,
+        )
+        from app.core.state_machine import StateMachine
+        from app.core.database import get_db
+        db = next(get_db())
+        try:
+            sm = StateMachine(db)
+            svc = RequirementActionService(db, sm)
+            result = svc.execute_action(
+                req_id=req_id,
+                action=body.get("action", ""),
+                user_id=body.get("user_id", ""),
+                reason=body.get("reason", ""),
+            )
+            if result["status"] == "error":
+                raise HTTPException(status_code=400 if "不支持" in result["message"] or "不存在" in result["message"] else 400, detail=result["message"])
+            return result
+        except ActionValidationError as e:
+            raise HTTPException(status_code=422, detail=str(e))
+        except Exception as e:
+            if isinstance(e, HTTPException):
+                raise
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()
+
     return app
