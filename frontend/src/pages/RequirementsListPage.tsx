@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Table, Select, Input, Empty, message, Row, Col } from 'antd'
+import { useNavigate } from 'react-router-dom'
 import type { ColumnsType } from 'antd/es/table'
 
 interface Requirement {
@@ -28,6 +29,7 @@ const columns: ColumnsType<Requirement> = [
 ]
 
 export function RequirementsListPage() {
+  const navigate = useNavigate()
   const [data, setData] = useState<PageData | null>(null)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -101,6 +103,7 @@ export function RequirementsListPage() {
           dataSource={data?.items ?? []}
           rowKey="id"
           loading={loading}
+          onRow={(record) => ({ onClick: () => navigate(`/requirements/${record.id}`), style: { cursor: 'pointer' } })}
           pagination={{
             current: page,
             pageSize: 10,

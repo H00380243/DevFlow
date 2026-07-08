@@ -21,7 +21,7 @@
   "constraints": [
     "CON-001: 多智能体团队协作架构为硬性约束：每阶段由分工明确的多角色 Agent + 协调 Agent 组成",
     "CON-002: 工作流编排基于状态机 + 事件驱动，使用 LangGraph 实现",
-    "CON-003: 后端 FastAPI；Agent 层 LangChain/DeepAgents + 主流大模型 API；存储 PostgreSQL + MinIO + Git；前端 React + Ant Design + AntV G6",
+    "CON-003: 后端 FastAPI；执行层通过可插拔 Code Agent CLI（适配器模式）调用；存储 SQLite + Git；前端 React + Ant Design + AntV G6",
     "CON-004: 本轮接入单一 IM 渠道（平台可配置）",
     "CON-005: 单组织内部使用，非多租户",
     "CON-006: 不集成外部 CI/CD 或 Issue 系统",
@@ -66,6 +66,46 @@
       "description": "IM Webhook 签名密钥",
       "required_by": [3],
       "check_hint": "设置环境变量 IM_WEBHOOK_SECRET=your-secret"
+    },
+    {
+      "name": "Code Agent Provider",
+      "type": "env",
+      "key": "CODE_AGENT_PROVIDER",
+      "description": "执行引擎 provider（claude/opencode）",
+      "required_by": [24, 26, 27, 28, 29],
+      "check_hint": "设置环境变量 CODE_AGENT_PROVIDER=claude"
+    },
+    {
+      "name": "CLI Path",
+      "type": "env",
+      "key": "CODE_AGENT_CLI_PATH",
+      "description": "Code Agent CLI 可执行路径",
+      "required_by": [26],
+      "check_hint": "设置环境变量 CODE_AGENT_CLI_PATH=claude"
+    },
+    {
+      "name": "Code Agent Timeout",
+      "type": "env",
+      "key": "CODE_AGENT_TIMEOUT_SEC",
+      "description": "单作业超时秒数",
+      "required_by": [24, 26],
+      "check_hint": "设置环境变量 CODE_AGENT_TIMEOUT_SEC=600"
+    },
+    {
+      "name": "Worktree Base Dir",
+      "type": "env",
+      "key": "WORKTREE_BASE_DIR",
+      "description": "worktree 根目录",
+      "required_by": [25, 29],
+      "check_hint": "设置环境变量 WORKTREE_BASE_DIR=data/worktrees"
+    },
+    {
+      "name": "Git Repo Dir",
+      "type": "env",
+      "key": "GIT_REPO_DIR",
+      "description": "本地 Git 仓库目录（worktree 基线）",
+      "required_by": [25],
+      "check_hint": "设置环境变量 GIT_REPO_DIR=."
     },
     {
       "name": "MinIO Endpoint",
@@ -434,6 +474,138 @@
       "verification_steps": [
         "[devtools] Navigate /requirements/:id → click '确认' button → EXPECT: modal appears, confirm action, status updates; REJECT: no modal, action fails"
       ]
+    },
+    {
+      "id": 24,
+      "category": "adapter",
+      "title": "CodeAgentAdapter 抽象与 Registry",
+      "description": "定义 CodeAgentAdapter 抽象基类、Capability/TaskSpec/OutputContract/AgentRunResult 数据契约、CodeAgentRegistry provider 注册与切换",
+      "priority": "high",
+      "status": "passing",
+      "srs_trace": ["FR-022"],
+      "dependencies": [1],
+      "ui": false
+    },
+    {
+      "id": 25,
+      "category": "adapter",
+      "title": "WorkspaceManager worktree 隔离",
+      "description": "实现 git worktree 创建/释放/清理，每需求独立工作目录，支持并发隔离",
+      "priority": "high",
+      "status": "passing",
+      "srs_trace": ["FR-023"],
+      "dependencies": [24],
+      "ui": false
+    },
+    {
+      "id": 26,
+      "category": "adapter",
+      "title": "ClaudeCodeAdapter 实现",
+      "description": "默认 provider：claude CLI 子进程调用、prompt 渲染、JSON 解析、产物扫描、降级处理",
+      "priority": "high",
+      "status": "passing",
+      "srs_trace": ["FR-022"],
+      "dependencies": [24],
+      "ui": false
+    },
+    {
+      "id": 27,
+      "category": "core",
+      "title": "评审团委托适配器",
+      "description": "重构 F008 ReviewTeam call_llm→adapter.execute，产物文件化，保留对外签名",
+      "priority": "high",
+      "status": "passing",
+      "srs_trace": ["FR-005"],
+      "dependencies": [26],
+      "ui": false
+    },
+    {
+      "id": 28,
+      "category": "core",
+      "title": "设计团委托适配器",
+      "description": "重构 F012/F013 DesignTeam/DesignOutputHandler call_llm→adapter.execute，产物文件化",
+      "priority": "high",
+      "status": "passing",
+      "srs_trace": ["FR-009", "FR-010"],
+      "dependencies": [26],
+      "ui": false
+    },
+    {
+      "id": 29,
+      "category": "core",
+      "title": "实施团委托适配器",
+      "description": "重构 F015 ImplementationTeam call_llm→adapter.execute，worktree 代码生成",
+      "priority": "high",
+      "status": "pending",
+      "srs_trace": ["FR-013"],
+      "dependencies": [25, 26],
+      "ui": false
+    },
+    {
+      "id": 30,
+      "category": "core",
+      "title": "TestRunner 完整测试验收",
+      "description": "实现测试运行器，Code Agent 在 worktree 生成并运行测试，支持冲烟+单元测试",
+      "priority": "high",
+      "status": "pending",
+      "srs_trace": ["FR-014", "FR-024"],
+      "dependencies": [29],
+      "ui": false
+    },
+    {
+      "id": 31,
+      "category": "core",
+      "title": "Git 落盘接通 worktree",
+      "description": "重构 F018 GitHandler 从 worktree 提交代码，独立分支，密钥检测保留",
+      "priority": "high",
+      "status": "pending",
+      "srs_trace": ["FR-016"],
+      "dependencies": [29],
+      "ui": false
+    },
+    {
+      "id": 32,
+      "category": "core",
+      "title": "交付档案 Code Agent 生成",
+      "description": "重构 F019 DeliveryArchiveHandler 委托 Code Agent 生成交付档案",
+      "priority": "high",
+      "status": "pending",
+      "srs_trace": ["FR-017a", "FR-017b"],
+      "dependencies": [31],
+      "ui": false
+    },
+    {
+      "id": 33,
+      "category": "adapter",
+      "title": "OpenCodeAdapter 与切换回归",
+      "description": "备选 provider：opencode CLI 适配器、provider 切换回归测试",
+      "priority": "medium",
+      "status": "pending",
+      "srs_trace": ["FR-022"],
+      "dependencies": [26],
+      "ui": false
+    },
+    {
+      "id": 34,
+      "category": "core",
+      "title": "code_agent_runs 留痕与降级标注",
+      "description": "新增 CodeAgentRuns 模型，每次适配器调用全留痕，降级标注展示",
+      "priority": "medium",
+      "status": "pending",
+      "srs_trace": ["NFR-007", "NFR-012"],
+      "dependencies": [27],
+      "ui": false
+    },
+    {
+      "id": 35,
+      "category": "ui",
+      "title": "看板展示执行引擎状态",
+      "description": "ProviderBadge 组件、ProviderConfigPage 配置页、详情页展示运行状态",
+      "priority": "medium",
+      "status": "pending",
+      "srs_trace": ["FR-018"],
+      "dependencies": [34],
+      "ui": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 """Implementation Team — F015 实施团代码生成.
 
 Implements 3-role parallel code generation agent execution with exponential backoff retry.
-Mirrors F012 DesignTeam pattern.
+v2 (F029): Delegates execution to CodeAgentAdapter via adapter.execute().
 """
 
 import json
@@ -14,8 +14,13 @@ from typing import Callable, TypeVar
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.core.adapters.base import (
+    AgentRunResult, CodeAgentAdapter, OutputContract, TaskSpec, Workspace,
+)
 from app.core.state_machine import RequirementNotFoundError
 from app.core.review_scoring import LLMCallError
+from app.core.test_runner import TestResult, TestRunner
+from app.core.workspace_manager import WorkspaceManager
 from app.models import DesignResults, ImplementationResults, Requirements
 
 logger = logging.getLogger(__name__)
@@ -73,6 +78,8 @@ class CodeResult(BaseModel):
     requirement_id: str
     code_files: list[dict] = Field(default_factory=list)
     ambiguity_notes: list[str] = Field(default_factory=list)
+    test_result: dict | None = None
+    worktree_path: str | None = None
 
 
 class CodeParseError(Exception):
@@ -131,7 +138,64 @@ class ImplementationAgent:
             role_specific_instructions=role_info["instructions"],
         )
 
-    def generate(self, design_doc: dict) -> CodeOutput:
+    def _build_task_spec(self, design_doc: dict) -> TaskSpec:
+        prompt = self._build_prompt(design_doc)
+        return TaskSpec(
+            role=self.role_name,
+            objective=f"生成代码：{design_doc.get('requirement_id', '')}",
+            stage="implementation",
+            inputs={
+                "prompt": prompt,
+                "requirement_id": design_doc.get("requirement_id", ""),
+                "design_content": design_doc.get("design_content", ""),
+                "skeleton_dirs": design_doc.get("skeleton_dirs", []),
+            },
+            output_contract=OutputContract(
+                structured_fields=["code_files", "ambiguity_notes"],
+            ),
+        )
+
+    def generate(self, design_doc: dict,
+                 adapter: CodeAgentAdapter | None = None,
+                 workspace: Workspace | None = None) -> CodeOutput:
+        if adapter is not None and workspace is not None:
+            return self._generate_via_adapter(design_doc, adapter, workspace)
+        return self._generate_via_llm(design_doc)
+
+    def _generate_via_adapter(self, design_doc: dict,
+                              adapter: CodeAgentAdapter,
+                              workspace: Workspace) -> CodeOutput:
+        task = self._build_task_spec(design_doc)
+        try:
+            result = adapter.execute(task, workspace)
+        except Exception as e:
+            raise LLMCallError(self.role_name, 0, e)
+        return self._parse_result(result)
+
+    def _parse_result(self, result: AgentRunResult) -> CodeOutput:
+        if result.structured:
+            data = result.structured
+        else:
+            try:
+                data = json.loads(result.stdout)
+            except json.JSONDecodeError:
+                raise CodeParseError(self.role_name, result.stdout)
+
+        if "code_files" not in data:
+            raise CodeParseError(self.role_name, json.dumps(data, ensure_ascii=False))
+        code_files = data["code_files"]
+        for file in code_files:
+            _ = file["path"]
+            _ = file["content"]
+        ambiguity_notes = data.get("ambiguity_notes", [])
+        return CodeOutput(
+            agent_role=self.role_name,
+            raw_text=json.dumps(data, ensure_ascii=False),
+            code_files=code_files,
+            ambiguity_notes=ambiguity_notes,
+        )
+
+    def _generate_via_llm(self, design_doc: dict) -> CodeOutput:
         prompt = self._build_prompt(design_doc)
         try:
             raw = self.call_llm(prompt)
@@ -165,8 +229,13 @@ class ImplementationTeam:
     MAX_RETRIES = 3
     AGENT_ROLES = ["后端开发", "前端开发", "质量保障"]
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, adapter: CodeAgentAdapter | None = None,
+                 workspace_manager: WorkspaceManager | None = None,
+                 test_runner: TestRunner | None = None):
         self._session = session
+        self._adapter = adapter
+        self._wm = workspace_manager
+        self._test_runner = test_runner
         self._agents = [ImplementationAgent(role) for role in self.AGENT_ROLES]
 
     def _load_design_output(self, req_id: str) -> dict:
@@ -218,10 +287,14 @@ class ImplementationTeam:
             "version": version,
         }
 
-    def _persist_output(self, req_id: str, code_files: list[dict]) -> None:
+    def _persist_output(self, req_id: str, code_files: list[dict],
+                        test_result: dict | None = None,
+                        worktree_path: str | None = None) -> None:
         row = ImplementationResults(
             requirement_id=req_id,
             code_files=code_files if code_files else [],
+            test_result=test_result,
+            worktree_path=worktree_path,
         )
         self._session.add(row)
         self._session.commit()
@@ -230,10 +303,11 @@ class ImplementationTeam:
         logger.error("Implementation Agent %s failed after retries: %s", role_name, error)
 
     def _execute_agent(
-        self, agent: ImplementationAgent, design_doc: dict
+        self, agent: ImplementationAgent, design_doc: dict,
+        workspace: Workspace | None = None,
     ) -> CodeOutput | None:
         return retry_with_backoff(
-            lambda: agent.generate(design_doc),
+            lambda: agent.generate(design_doc, self._adapter, workspace),
             max_retries=self.MAX_RETRIES,
             on_exhausted=lambda e: self._notify_agent_failure(agent.role_name, e),
         )
@@ -259,11 +333,16 @@ class ImplementationTeam:
     def run_implementation(self, req_id: str) -> CodeResult:
         design_doc = self._load_design_output(req_id)
 
+        ws: Workspace | None = None
+        if self._adapter is not None or self._wm is not None:
+            wm = self._wm or WorkspaceManager()
+            ws = wm.acquire_workspace(req_id, "implementation")
+
         results: list[CodeOutput] = []
 
         with ThreadPoolExecutor(max_workers=len(self._agents)) as executor:
             future_to_agent = {
-                executor.submit(self._execute_agent, agent, design_doc): agent
+                executor.submit(self._execute_agent, agent, design_doc, ws): agent
                 for agent in self._agents
             }
             for future in as_completed(future_to_agent):
@@ -277,8 +356,24 @@ class ImplementationTeam:
                     results.append(result)
 
         if not results:
+            if ws is not None:
+                wm = self._wm or WorkspaceManager()
+                wm.release_workspace(req_id, "implementation")
             raise AllAgentsFailedError(req_id)
 
         code_result = self._aggregate_results(req_id, results)
-        self._persist_output(req_id, code_result.code_files)
+
+        test_result: TestResult | None = None
+        if ws is not None and self._test_runner is not None:
+            test_result = self._test_runner.run_tests(ws)
+            code_result.test_result = test_result.model_dump()
+            code_result.worktree_path = ws.path
+
+        if ws is not None:
+            wm = self._wm or WorkspaceManager()
+            wm.release_workspace(req_id, "implementation")
+
+        self._persist_output(req_id, code_result.code_files,
+                             test_result=code_result.test_result,
+                             worktree_path=code_result.worktree_path)
         return code_result

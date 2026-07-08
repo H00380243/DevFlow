@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Descriptions, Tag, Timeline, Badge, Card, Row, Col, Skeleton, Result, Button, Modal, Input, message } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 
@@ -9,6 +9,36 @@ interface TimelineEntry {
   trigger_event: string | null
   trigger_user: string | null
   triggered_at: string | null
+}
+
+interface ReviewDetail {
+  agent_role: string
+  business_value: number
+  technical_feasibility: number
+  roi: number
+  system_compatibility: number
+  verdict: string
+  comments: string | null
+  scored_at: string | null
+}
+
+interface DesignDetail {
+  agent_role: string
+  document_url: string | null
+  skeleton_dirs: string[]
+  core_interfaces: string[]
+  risk_warnings: string[]
+  created_at: string | null
+  version: number
+}
+
+interface ImplementationDetail {
+  code_files: { path: string; lines: number }[]
+  verification_result: object | null
+  branch_name: string | null
+  commit_id: string | null
+  commit_message: string | null
+  committed_at: string | null
 }
 
 interface DetailData {
@@ -26,6 +56,9 @@ interface DetailData {
   review_count: number
   design_count: number
   implementation_count: number
+  review_details: ReviewDetail[]
+  design_details: DesignDetail[]
+  implementation_details: ImplementationDetail[]
   timeline: TimelineEntry[]
 }
 
@@ -51,6 +84,7 @@ const ACTIONABLE_STATUSES = ['PENDING_REVIEW', 'DESIGN_PENDING_CONFIRM', 'IMPL_P
 
 export function RequirementDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [data, setData] = useState<DetailData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -106,10 +140,10 @@ export function RequirementDetailPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => window.history.back()}>
-          返回列表
-        </Button>
+      <Button type="link" icon={<ArrowLeftOutlined />} onClick={() => navigate('/requirements')} style={{ padding: 0, marginBottom: 16 }}>
+        返回列表
+      </Button>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 16 }}>
         {isActionable && (
           <div style={{ display: 'flex', gap: 8 }}>
             <Button type="primary" loading={actionLoading} onClick={() => performAction('confirm')}>
@@ -148,6 +182,80 @@ export function RequirementDetailPage() {
               <Descriptions.Item label="实施次数">{data.implementation_count}</Descriptions.Item>
             </Descriptions>
           </Card>
+
+          {data.design_details.length > 0 && (
+            <Card title="设计文档" variant="outlined" style={{ marginTop: 16 }}>
+              {data.design_details.map((dd, i) => (
+                <div key={i} style={{ marginBottom: i < data.design_details.length - 1 ? 16 : 0 }}>
+                  <Descriptions column={1} size="small" styles={{ label: { fontWeight: 500 } }}>
+                    <Descriptions.Item label="设计角色">{dd.agent_role}</Descriptions.Item>
+                    <Descriptions.Item label="版本">{dd.version}</Descriptions.Item>
+                    <Descriptions.Item label="时间">{dd.created_at ? new Date(dd.created_at).toLocaleString('zh-CN') : '-'}</Descriptions.Item>
+                    <Descriptions.Item label="文档链接">{dd.document_url || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="目录结构">
+                      {dd.skeleton_dirs.length > 0
+                        ? dd.skeleton_dirs.map((d) => <Tag key={d}>{d}</Tag>)
+                        : '-'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="核心接口">
+                      {dd.core_interfaces.length > 0
+                        ? dd.core_interfaces.map((c) => <div key={c} style={{ fontFamily: 'monospace', fontSize: 12 }}>{c}</div>)
+                        : '-'}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="风险警告">
+                      {dd.risk_warnings.length > 0
+                        ? dd.risk_warnings.map((w, j) => (
+                            <Tag key={j} color={w.includes('高风险') ? 'red' : 'orange'}>{w}</Tag>
+                          ))
+                        : '无'}
+                    </Descriptions.Item>
+                  </Descriptions>
+                  {i < data.design_details.length - 1 && <hr style={{ opacity: 0.2 }} />}
+                </div>
+              ))}
+            </Card>
+          )}
+
+          {data.review_details.length > 0 && (
+            <Card title="评审详情" variant="outlined" style={{ marginTop: 16 }}>
+              {data.review_details.map((rd, i) => (
+                <div key={i} style={{ marginBottom: i < data.review_details.length - 1 ? 16 : 0 }}>
+                  <Descriptions column={2} size="small" styles={{ label: { fontWeight: 500 } }}>
+                    <Descriptions.Item label="评审角色">{rd.agent_role}</Descriptions.Item>
+                    <Descriptions.Item label="裁决">
+                      <Tag color={rd.verdict === '通过' ? 'green' : rd.verdict === '反对' ? 'red' : 'orange'}>{rd.verdict}</Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="商业价值">{rd.business_value}</Descriptions.Item>
+                    <Descriptions.Item label="技术可行性">{rd.technical_feasibility}</Descriptions.Item>
+                    <Descriptions.Item label="ROI">{rd.roi}</Descriptions.Item>
+                    <Descriptions.Item label="系统兼容性">{rd.system_compatibility}</Descriptions.Item>
+                    <Descriptions.Item label="评语" span={2}>{rd.comments || '-'}</Descriptions.Item>
+                  </Descriptions>
+                  {i < data.review_details.length - 1 && <hr style={{ opacity: 0.2 }} />}
+                </div>
+              ))}
+            </Card>
+          )}
+
+          {data.implementation_details.length > 0 && (
+            <Card title="实施详情" variant="outlined" style={{ marginTop: 16 }}>
+              {data.implementation_details.map((impl, i) => (
+                <div key={i}>
+                  <Descriptions column={1} size="small" styles={{ label: { fontWeight: 500 } }}>
+                    <Descriptions.Item label="分支">{impl.branch_name || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="提交 ID">{impl.commit_id || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="提交信息">{impl.commit_message || '-'}</Descriptions.Item>
+                    <Descriptions.Item label="提交时间">{impl.committed_at ? new Date(impl.committed_at).toLocaleString('zh-CN') : '-'}</Descriptions.Item>
+                    <Descriptions.Item label="代码文件">
+                      {impl.code_files.length > 0
+                        ? impl.code_files.map((f, j) => <div key={j} style={{ fontFamily: 'monospace', fontSize: 12 }}>{f.path} ({f.lines} lines)</div>)
+                        : '-'}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </div>
+              ))}
+            </Card>
+          )}
         </Col>
         <Col xs={24} lg={8}>
           <Card title="状态流转记录" variant="outlined">

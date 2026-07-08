@@ -55,6 +55,42 @@ class RequirementDetailService:
                 "triggered_at": h.triggered_at.isoformat() if h.triggered_at else None,
             })
 
+        review_details = []
+        for r in req.review_results:
+            review_details.append({
+                "agent_role": r.agent_role,
+                "business_value": r.business_value,
+                "technical_feasibility": r.technical_feasibility,
+                "roi": r.roi,
+                "system_compatibility": r.system_compatibility,
+                "verdict": r.verdict,
+                "comments": r.comments,
+                "scored_at": r.scored_at.isoformat() if r.scored_at else None,
+            })
+
+        design_details = []
+        for d in req.design_results:
+            design_details.append({
+                "agent_role": d.agent_role,
+                "document_url": d.document_url,
+                "skeleton_dirs": d.skeleton_dirs or [],
+                "core_interfaces": d.core_interfaces or [],
+                "risk_warnings": d.risk_warnings or [],
+                "created_at": d.created_at.isoformat() if d.created_at else None,
+                "version": d.version,
+            })
+
+        implementation_details = []
+        for i in req.implementation_results:
+            implementation_details.append({
+                "code_files": i.code_files or [],
+                "verification_result": i.verification_result,
+                "branch_name": i.branch_name,
+                "commit_id": i.commit_id,
+                "commit_message": i.commit_message,
+                "committed_at": i.committed_at.isoformat() if i.committed_at else None,
+            })
+
         return {
             "id": req.id,
             "original_text": req.original_text,
@@ -70,5 +106,8 @@ class RequirementDetailService:
             "review_count": len(req.review_results),
             "design_count": len(req.design_results),
             "implementation_count": len(req.implementation_results),
+            "review_details": review_details,
+            "design_details": design_details,
+            "implementation_details": implementation_details,
             "timeline": timeline,
         }

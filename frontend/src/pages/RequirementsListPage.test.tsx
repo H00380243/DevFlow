@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { RequirementsListPage } from './RequirementsListPage'
 
 beforeEach(() => {
@@ -13,7 +14,7 @@ describe('RequirementsListPage', () => {
         headers: { 'Content-Type': 'application/json' },
       })
     )
-    render(<RequirementsListPage />)
+    render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByText('需求列表')).toBeInTheDocument()
     })
@@ -25,7 +26,7 @@ describe('RequirementsListPage', () => {
         headers: { 'Content-Type': 'application/json' },
       })
     )
-    const { container } = render(<RequirementsListPage />)
+    const { container } = render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       expect(container.querySelectorAll('.ant-select').length).toBeGreaterThanOrEqual(2)
     })
@@ -43,7 +44,7 @@ describe('RequirementsListPage', () => {
         { headers: { 'Content-Type': 'application/json' } }
       )
     )
-    const { container } = render(<RequirementsListPage />)
+    const { container } = render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       const headers = container.querySelectorAll('.ant-table-thead th')
       expect(headers.length).toBe(6)
@@ -60,7 +61,7 @@ describe('RequirementsListPage', () => {
         headers: { 'Content-Type': 'application/json' },
       })
     )
-    const { container } = render(<RequirementsListPage />)
+    const { container } = render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       expect(container.querySelector('.ant-pagination')).toBeInTheDocument()
     })
@@ -72,7 +73,7 @@ describe('RequirementsListPage', () => {
         headers: { 'Content-Type': 'application/json' },
       })
     )
-    const { container } = render(<RequirementsListPage />)
+    const { container } = render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       expect(container.querySelector('.ant-empty')).toBeInTheDocument()
     })

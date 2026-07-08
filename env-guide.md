@@ -6,7 +6,7 @@
 
 | Service Name | Port | Start Command | Stop Command | Verify URL |
 |---|---|---|---|---|
-| FastAPI API | 8000 | `uvicorn demandflow.api:app --reload --port 8000` | `kill $(lsof -ti :8000)` | `http://localhost:8000/health` |
+| FastAPI API | 8000 | `uvicorn app.main:create_app --factory --reload --port 8000` | `kill $(lsof -ti :8000)` | `http://localhost:8000/api/dashboard/metrics` |
 | Huey Worker | - | `huey consumer -k greenlet -w 2 demandflow.tasks` | `kill $(pgrep -f "huey consumer")` | - |
 | React Dev Server | 5173 | `cd frontend && npm run dev` | `kill $(lsof -ti :5173)` | `http://localhost:5173` |
 
@@ -33,7 +33,7 @@ head -30 /tmp/svc-frontend-start.log
 ### Windows
 ```bash
 # FastAPI API
-cmd /c "start /b uvicorn demandflow.api:app --reload --port 8000 > %TEMP%\svc-api-start.log 2>&1"
+set LLM_API_KEY=sk-your-key& set LLM_BASE_URL=https://api.openai.com/v1& set LLM_MODEL_NAME=gpt-4& set IM_PLATFORM=feishu& set IM_WEBHOOK_SECRET=your-secret& uvicorn app.main:create_app --factory --reload --port 8000
 timeout /t 3 /nobreak >nul
 powershell "Get-Content $env:TEMP\svc-api-start.log -TotalCount 30"
 

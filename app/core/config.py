@@ -18,12 +18,21 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///data/demandflow.db"
     HUEY_URL: str = "sqlite:///data/huey_queue.db"
     LLM_API_KEY: Optional[str] = None
+    LLM_BASE_URL: Optional[str] = None
+    LLM_MODEL_NAME: str = "gpt-4"
     GIT_REPO_URL: Optional[str] = None
+    GIT_REPO_DIR: Optional[str] = None
     IM_PLATFORM: Optional[str] = None
     IM_WEBHOOK_SECRET: Optional[str] = None
     MINIO_ENDPOINT: Optional[str] = None
     MINIO_ACCESS_KEY: Optional[str] = None
     MINIO_SECRET_KEY: Optional[str] = None
+    CODE_AGENT_PROVIDER: str = "claude"
+    CODE_AGENT_CLI_PATH: str = "claude"
+    CODE_AGENT_EXTRA_ARGS: str = "[]"
+    CODE_AGENT_TIMEOUT_SEC: int = 600
+    WORKTREE_BASE_DIR: str = "data/worktrees"
+    WORKTREE_RETENTION_DAYS: int = 7
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 

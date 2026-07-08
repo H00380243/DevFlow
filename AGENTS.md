@@ -1,190 +1,110 @@
 ## Goal
-- Build DemandFlow (智能需求交付系统) — complete all 23 features across 7 milestones, currently on Worker cycle for F016 (冲烟验证).
+- Build DemandFlow (智能需求交付系统) — currently on M8 (Code Agent 适配层), all 23 original features passing (ST GO verdict).
 
 ## Constraints & Preferences
 - SQLite replaces PostgreSQL; Huey with SQLite backend (both DB and queue)
 - IM platform: single channel, configurable (dingtalk/feishu/slack)
-- Tech stack: FastAPI, SQLAlchemy, LangChain/LangGraph, React + Ant Design 5.x + AntV G6
+- Tech stack: FastAPI, SQLAlchemy, React + Ant Design 5.x + AntV G6
 - Language: All user-facing output in Chinese (Simplified)
+- Code Agent stack: Claude Code CLI (primary), pluggable adapter registry
 - Quality gates: line ≥80%, branch ≥70%, mutation ≥75%
 - mutmut requires WSL on Windows — mutation testing skipped, manual mutation as project methodology
 
 ## Progress
-### Done
-- All planning phases complete (SRS, UCD, Design, ATS, Init)
+### v1 Done (F001–F023)
+All 23 features passing across 7 milestones. ST concluded with GO verdict: 26/26 tests pass, 463 total tests, 0 defects, 100% RTM.
 - **F001 (项目骨架与基础设施): PASS** — git `e0c4404`
-  - FastAPI app factory (`create_app`), SQLite+WAL DB (`get_db`), Huey queue (`init_huey`), pydantic-settings config (`get_settings`)
-  - 12 tests, 96% line / 98% branch coverage, 11/11 ST cases PASS
-  - Report: `docs/report/feature-1-project-skeleton-report.md`
 - **F002 (数据模型与迁移): PASS** — git `f59520f`
-  - 8 SQLAlchemy models (Requirements, ReviewResults, DesignResults, ImplementationResults, DeliveryArchives, StatusHistory, ArbitrationRequests, IdempotencyStore)
-  - CHECK constraints, JSON fields, composite index, Alembic initial migration
-  - 41 total tests (29 F002-specific), 98% line / 98% branch coverage, 28/28 ST cases PASS
-  - Report: `docs/report/feature-2-data-model-report.md`
 - **F003 (IM Webhook 接入): PASS** — git `f7c9a7c`
-  - WebhookHandler, MessageRouter, POST /webhook/im/{platform} endpoint
-  - 63 total tests (22 F003-specific), 96% line / 96% branch coverage, 12/12 ST cases PASS
-  - Report: `docs/report/feature-3-im-webhook-report.md`
 - **F004 (需求结构化与 ID 生成): PASS** — git `d1565b3`
-  - RequirementParser, IdempotencyChecker, StructuredRequirement Pydantic model
-  - 98 total tests (35 F004-specific), 97% line / 97% branch coverage, 13/13 ST cases PASS
-  - Report: `docs/report/feature-4-requirement-parser-report.md`
 - **F005 (状态变更指令系统): PASS** — git `ee85144`
-  - CommandParser, PermissionChecker, CommandExecutor
-  - 129 total tests (31 F005-specific), 97% line / 97% branch coverage, 15/15 ST cases PASS
-  - Report: `docs/report/feature-5-command-parser-report.md`
 - **F006 (查询指令系统): PASS** — git `b1303b4`
-  - CommandParser extensions (ProgressCommand, ListCommand), QueryExecutor
-  - 144 total tests (15 F006-specific), 97% line / 97% branch coverage, 15/15 ST cases PASS
-  - Report: `docs/report/feature-6-query-parser-report.md`
 - **F007 (状态机引擎): PASS** — git `8779ae5`
-  - StateMachine, StateTransitionTable, PersistenceManager, Status/Event enums
-  - 167 total tests (23 F007-specific), 98% line / 98% branch coverage, 18/18 ST cases PASS
-  - Report: `docs/report/feature-7-state-machine-report.md`
 - **F008 (评审团多角色打分): PASS** — git `ddd60da`
-  - ReviewTeam, ReviewAgent, DimensionScores, Verdict, retry_with_backoff
-  - 182 total tests (15 F008-specific), 96% line / ~93% branch coverage, ST skipped (user requested)
-  - Report: `docs/report/feature-8-review-scoring-report.md`
 - **F009 (评审结论汇总与裁决): PASS** — git `c5921d4`
-  - AggregationService, ArbitrationHandler, FinalDecision, _decide pure function
-  - 裁决规则: ≥2 APPROVE → auto-pass, ≥2 REJECT → arbitration, else → auto-pass
-  - 200 total tests (18 F009-specific), 98% line / 98% branch coverage, ST skipped (user requested)
-  - Report: `docs/report/feature-9-review-aggregation-report.md`
 - **F010 (人工仲裁处理): PASS** — git `0a78664`
-  - ArbitrationNotifier, ArbitrationTimeoutMonitor, CommandExecutor arbitration routing
-  - IM push retry 3x 指数退避, 4-hour timeout escalation, state-aware command routing
-  - 214 total tests (14 F010-specific), 98% line / 100% branch (arbitration_notification), ST skipped
-  - Report: `docs/report/feature-10-arbitration-notification-report.md`
 - **F011 (评审驳回通知与归档): PASS** — git `5e1a0ca`
-  - RejectionNotifier, format_rejection_message, 复用 F010 NotificationFailedError
-  - IM驳回通知 指数退避重试3次, 归档停流转由F009状态机实现
-  - 224 total tests (10 F011-specific), 97% line / 100% branch, ST skipped
-  - Report: `docs/report/feature-11-rejection-notification-report.md`
 - **F012 (设计团多角色产出): PASS** — git `1c27e72`
-  - DesignTeam, DesignAgent (3 角色: 产品设计/技术选型/合规风控), retry_with_backoff (复用 F008)
-  - [高风险] 标注, DesignParseError, AllAgentsFailedError
-  - 243 total tests (19 F012-specific), 95% line / 90% branch, ST skipped
-  - Report: `docs/report/feature-12-design-team-output-report.md`
 - **F013 (设计产出物生成): PASS** — git `c92dce9`
-  - DesignOutputHandler: complete_design, upload_document, _validate_interfaces, _generate_document
-  - Upload retry 3x 指数退避, 接口验证 (substring match MVP), 状态流转 IN_DESIGN→DESIGN_PENDING_CONFIRM
-  - 260 total tests (17 F013-specific), 100% line (design_output_handler), 97% overall, ST skipped
-  - Report: `docs/report/feature-13-design-artifact-generation-report.md`
 - **F014 (设计确认门与迭代): PASS** — git `718f373`
-  - DesignConfirmationHandler (confirm/reject), ConfirmationTimeoutMonitor (4h timeout), state machine TIMEOUT self-loop
-  - 24 tests, 87% line / 71% branch (design_confirmation_handler.py), ST skipped
-  - Report: `docs/report/feature-14-design-confirmation-gate-report.md`
 - **F015 (实施团代码生成): PASS** — git `8ca5496`
-  - ImplementationTeam, ImplementationAgent, CodeOutput/CodeResult, retry_with_backoff (reuse F008)
-  - 17 tests, 91% line (implementation_team.py), ST skipped
-  - Report: `docs/report/feature-15-implementation-code-generation-report.md`
 - **F016 (冲烟验证): PASS** — git `1680713`
-  - SmokeVerifier (check_syntax/check_imports/check_startup), VerificationResult
-  - 17 tests, 96% line / 96% branch, ST skipped
-  - Report: `docs/report/feature-16-smoke-verification-report.md`
-- **F017 (实施确认门): PASS** — git `waiting`
-  - ImplementationConfirmationHandler (confirm/reject 3× retry limit), ConfirmationTimeoutMonitor (4h timeout)
-  - 18 tests, 95% line / ~82% branch, ST skipped
-  - Report: `docs/report/feature-17-implementation-confirmation-gate-report.md`
+- **F017 (实施确认门): PASS** — git `e25036e`
 - **F018 (Git 提交与密钥检测): PASS** — git `fee99aa`
-  - SecretDetector (8 patterns), GitHandler (stubs), GitCommitOrchestrator (scan→branch→commit→push, 3× retry)
-  - 21 tests, 94% line (git_handler), 95.06% total, ST skipped
-  - Report: `docs/report/feature-18-git-commit-report.md`
 - **F019 (交付档案与状态归档): PASS** — git `ed166c2`
-  - DeliveryArchiveHandler (JSON build→upload→persist→transition→notify, 3× retry), TypeError non-retryable
-  - 19 tests, ~100% line (delivery_archive_handler), 95.15% total, ST skipped
-  - Report: `docs/report/feature-19-delivery-archive-report.md`
 - **F020 (看板首页指标): PASS** — git `b9f6b5c`
-  - DashboardService.get_metrics() (3 queries), GET /api/dashboard/metrics, MetricCard, DashboardPage
-  - 18 tests (10 backend + 8 frontend Vitest), 95% total, ST skipped
-  - Report: `docs/report/feature-20-dashboard-metrics-report.md`
 - **F021 (需求列表与筛选搜索): PASS** — git `b6aaf9a`
-  - RequirementsService.get_requirements() (paginated/filtered/search), GET /api/requirements endpoint
-  - RequirementsListPage (Ant Design Table + Select + Search + Pagination), React Router routing
-  - 18 tests (13 backend + 5 frontend Vitest), ST skipped
-  - Report: `docs/report/feature-21-requirements-list-report.md`
 - **F022 (需求详情页): PASS** — git `5b5e800`
-  - RequirementDetailService.get_detail() (joined loads), GET /api/requirements/{id}
-  - RequirementDetailPage (left Descriptions + right Timeline), tags/badges/loading/error states
-  - 15 tests (10 backend + 5 frontend Vitest), ST skipped
-  - Report: `docs/report/feature-22-requirement-detail-report.md`
 - **F023 (看板操作与 IM 同步): PASS** — git `176c65c`
-  - RequirementActionService.execute_action() (state machine confirm/reject), POST /api/requirements/{id}/action
-  - Confirm/Reject buttons + reject reason Modal on detail page
-  - 13 tests (8 backend + 5 frontend), ST skipped
-  - Report: `docs/report/feature-23-kanban-action-report.md`
+- ST Report: `docs/plans/2026-07-09-st-report.md`
 
-### Completed — All 23 features passing
-
-### Blocked
-- None
-
-### Waiting
-- F023 commit pending
-
-## Key Decisions
-- **Approach B (Monolith + Async Workers)**: FastAPI main + Huey workers
-- **SQLite WAL** for both DB and Huey queue; `data/demandflow.db` + `data/huey_queue.db`
-- **F002 models**: CHECK constraints at DB level (id GLOB, ratings 1-5, verdict IN, timeout_count≥0); JSON fields (tags, skeleton_dirs, core_interfaces, risk_warnings, code_files, verification_result)
-- **F003 implementation**: MessageRouter with CommandType enum (REQUIREMENT/COMMAND/UNSUPPORTED); async webhook returns 202; Huey processes message in background
-- **F004 implementation**: RequirementParser with generate_id() using REQ-YYYYMMDD-NNN format; IdempotencyChecker with 5-minute window
-- **F005 implementation**: CommandParser with confirm/reject parsing; PermissionChecker with submitter-only validation; CommandExecutor orchestrating parse → permission → DB ops
-- **F006 implementation**: CommandParser extended with _parse_progress/_parse_list; QueryExecutor handling progress/list queries; no permission check for query commands
-- **F007 implementation**: StateMachine with StateTransitionTable and PersistenceManager; 14 Status states, 10+6 Events, 16 valid transitions
-- **F008 implementation**: ReviewTeam with 3 parallel ReviewAgents (产品分析/价值评估/技术可行性); DimensionScores 4-dimension 1-5 scoring; Verdict enum; retry_with_backoff exponential backoff
-- **F009 implementation**: AggregationService with _decide pure function; ArbitrationHandler managing arbitration lifecycle (request, response, timeout, escalation); FinalDecision enum (APPROVED/NEEDS_ARBITRATION)
-- **F010 implementation**: ArbitrationNotifier with IM push retry 3x backoff; ArbitrationTimeoutMonitor with 4-hour timeout and 3-step escalation; CommandExecutor extended with state-aware arbitration routing
-- **F011 implementation**: RejectionNotifier with format_rejection_message; 复用 F010 NotificationFailedError; 归档停流转由 F009 状态机实现
-- **F012 implementation**: DesignTeam with 3 parallel DesignAgents (产品设计/技术选型/合规风控); retry_with_backoff reuse from F008; DesignParseError, AllAgentsFailedError; [高风险] annotation
-- **F013 implementation**: DesignOutputHandler with injectable upload_fn/push_fn; upload_document 3-retry exponential backoff; _validate_interfaces substring match MVP; _generate_document JSON assembly
+### v2 In Progress (M8–M13)
+- **F024 (CodeAgentAdapter 抽象与 Registry): PASS** — pending commit
+  - `app/core/adapters/__init__.py`, `app/core/adapters/base.py`
+  - Capability/TaskSpec/OutputContract/Workspace/AgentRunResult/CodeAgentAdapter(ABC)/CodeAgentRegistry
+  - 12 tests, all pass
+- **F025 (WorkspaceManager worktree 隔离): PASS** — pending commit
+  - `app/core/workspace_manager.py`
+  - acquire/release/cleanup with git worktree isolation
+  - 4 tests, all pass
+- **F026 (ClaudeCodeAdapter): PASS** — pending commit
+  - `app/core/adapters/claude_adapter.py`
+  - CLI subprocess execution, JSON output parsing, artifact scanning
+  - 10 tests, all pass
+- **F027 (评审团委托适配器): PASS** — pending commit
+  - Refactored `ReviewAgent.score()` to support `adapter.execute()` via `_score_via_adapter`
+  - `CodeAgentEngine` integration helper (`app/core/adapters/engine.py`)
+  - Backward compatible: `call_llm` still works when no adapter provided
+  - 15 new tests (F027-specific), 74 total in adapter layer, all pass
+- **F028 (设计团委托适配器): PASS** — pending commit
+  - Refactored `DesignAgent.design()` to support `adapter.execute()` via `_design_via_adapter`
+  - `DesignTeam` accepts optional `adapter` + `workspace_manager`
+  - Backward compatible: `call_llm` still works when no adapter provided
+  - 11 new tests (F028-specific), 85 total in adapter layer, all pass
+- **F029 (实施团委托适配器): PASS** — pending commit
+  - Refactored `ImplementationAgent.generate()` to support `adapter.execute()` via `_build_task_spec` + `_parse_result`
+  - `ImplementationTeam` accepts optional `adapter` + `workspace_manager`
+  - Backward compatible: `call_llm` still works when no adapter provided
+  - 10 new tests (F029-specific), 95 total in adapter layer, all pass
+- **F030 (TestRunner 完整测试验收): PASS** — pending commit
+  - `TestResult` pydantic model with `passed_with_gate()` gate check (line ≥80%, branch ≥70%)
+  - `TestRunner` class with capability-based degradation (`Capability.RUN_TESTS`)
+  - `_build_task_spec` / `_parse_result` / `run_tests(workspace)` adapter delegation pattern
+  - Integrated into `ImplementationTeam.run_implementation()` — runs tests after code gen, persists `test_result` + `worktree_path` to `ImplementationResults`
+  - Added `worktree_path`, `test_result`, `coverage` columns to `ImplementationResults` model
+  - Backward compatible: no TestRunner → no tests run, original flow unchanged
+  - 25 new tests, 156 total in adapter layer + implementation team, all pass
 
 ## Next Steps
-- All 23 features complete. Ready for System Testing (ST).
+- Commit F024–F030 and push
+- Proceed to F031 (Git 落盘接通 worktree)
 
-## Critical Context
-- Progress: **23/23 features passing** — All milestones complete
-- Total tests: 419 backend pytest + 18 frontend Vitest = 437 total
-- Git HEAD: pending F023 commit
+## Key Decisions
+- **v2 CON-003 rewrite**: execution layer from LangChain+stub LLM → pluggable Code Agent CLI via unified adapter contract
+- **adapter layer** (`app/core/adapters/`): CodeAgentAdapter ABC + Registry; ClaudeCodeAdapter as default; `capabilities()` for provider capability discovery
+- **worktree isolation** (`WorkspaceManager`): each requirement+stage gets a dedicated git worktree for isolated execution
+- **LangChain/minio removed**: all v1 LangChain dependencies stripped from requirements
 
 ## Relevant Files
-- `docs/plans/2026-07-04-demandflow-srs.md` — Approved SRS (21 FRs, 11 NFRs); FR-004b is F006's srs_trace
-- `docs/plans/2026-07-04-demandflow-design.md` — Approved Design; §2.1 (IM integration), §4.2 (API contracts)
-- `docs/plans/2026-07-04-demandflow-ats.md` — Approved ATS
-- `feature-list.json` — Task inventory (F001-F021 passing, F022-F023 failing)
-- `task-progress.md` — Progress log (21/23, last: F021, next: F022)
+### v1 Core
 - `app/__init__.py`, `app/main.py` — FastAPI app factory
-- `app/core/config.py` — pydantic-settings config (DATABASE_URL, HUEY_URL, IM_PLATFORM, IM_WEBHOOK_SECRET, etc.)
-- `app/core/database.py` — SQLAlchemy session (`get_db`)
-- `app/core/queue.py` — Huey SQLite queue (`init_huey`)
-- `app/core/webhook.py` — WebhookHandler (F003)
-- `app/core/message_router.py` — MessageRouter (F003)
-- `app/core/requirement_parser.py` — RequirementParser (F004)
-- `app/core/idempotency.py` — IdempotencyChecker (F004)
-- `app/core/command_parser.py` — CommandParser (F005)
-- `app/core/permission_checker.py` — PermissionChecker (F005)
-- `app/core/command_executor.py` — CommandExecutor (F005)
+- `app/core/config.py` — pydantic-settings config (all env vars including v2: CODE_AGENT_PROVIDER, CLI_PATH, TIMEOUT_SEC, WORKTREE_BASE_DIR/RETENTION_DAYS, GIT_REPO_DIR, LLM_BASE_URL, LLM_MODEL_NAME)
+- `app/core/database.py` — SQLAlchemy session
+- `app/core/queue.py` — Huey SQLite queue
 - `app/core/state_machine.py` — StateMachine (F007)
-- `app/core/review_scoring.py` — ReviewTeam, ReviewAgent (F008)
-- `app/core/review_aggregation.py` — AggregationService, ArbitrationHandler (F009)
-- `app/core/arbitration_notification.py` — ArbitrationNotifier, ArbitrationTimeoutMonitor (F010)
-- `app/core/rejection_notification.py` — RejectionNotifier (F011)
-- `app/core/design_team.py` — DesignTeam, DesignAgent (F012)
-- `app/core/design_output_handler.py` — DesignOutputHandler (F013)
-- `app/core/design_confirmation_handler.py` — DesignConfirmationHandler, ConfirmationTimeoutMonitor (F014)
-- `app/core/implementation_team.py` — ImplementationTeam, ImplementationAgent (F015)
-- `app/core/smoke_verification.py` — SmokeVerifier (F016)
-- `app/core/implementation_confirmation_handler.py` — ImplementationConfirmationHandler (F017)
-- `app/core/git_handler.py` — SecretDetector, GitHandler, GitCommitOrchestrator (F018)
-- `app/core/delivery_archive_handler.py` — DeliveryArchiveHandler (F019)
-- `app/core/dashboard_service.py` — DashboardService (F020)
-- `app/core/requirements_service.py` — RequirementsService (F021)
-- `app/models.py` — 8 SQLAlchemy models + init_db + Pydantic models
-- `alembic/` — Alembic migration config + `versions/0001_initial.py`
-- `tests/*.py` — 401 tests (pytest)
-- `frontend/src/` — React + Ant Design v6 frontend (Vite + Vitest)
-- `docs/features/*.md` — Feature design documents (F001-F021)
-- `docs/report/*.md` — Feature reports (F001-F021)
-- `RELEASE_NOTES.md` — Release changelog
-- `long-task-guide.md` — Worker session guide
-- `env-guide.md` — Service lifecycle
-- `.env.example` — Environment variable template
+- `app/models.py` — 8 SQLAlchemy models
+- `alembic/` — Alembic migration config
+- `start.cmd` — double-click dev launcher
+- `scripts/seed_demo.py` — 6 seed requirements
+
+### v2 Adapter Layer
+- `app/core/adapters/__init__.py` — module exports
+- `app/core/adapters/base.py` — F024: Capability, TaskSpec, OutputContract, Workspace, AgentRunResult, CodeAgentAdapter, CodeAgentRegistry
+- `app/core/adapters/claude_adapter.py` — F026: ClaudeCodeAdapter
+- `app/core/workspace_manager.py` — F025: WorkspaceManager
+
+### Docs
+- `docs/plans/2026-07-08-demandflow-srs.md` — SRS v2 (CON-003 rewrite, FR-022/023/024)
+- `docs/plans/2026-07-08-demandflow-design.md` — Design v2 (§2.7 adapter contract, M8–M13)
+- `docs/plans/2026-07-09-st-report.md` — ST report
+- `feature-list.json` — F024–F035 defined

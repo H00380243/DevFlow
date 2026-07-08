@@ -1,6 +1,7 @@
 """Review Scoring — F008 评审团多角色打分.
 
 Implements 3-role parallel review agent scoring with exponential backoff retry.
+v2 (F027): Delegates execution to CodeAgentAdapter via adapter.execute().
 """
 
 import json
@@ -14,7 +15,13 @@ from typing import Callable, TypeVar
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.core.adapters.base import (
+    AgentRunResult, Capability, CodeAgentAdapter, CodeAgentRegistry,
+    OutputContract, TaskSpec, Workspace,
+)
+from app.core.config import get_settings, ConfigError
 from app.core.state_machine import RequirementNotFoundError
+from app.core.workspace_manager import WorkspaceManager
 from app.models import Requirements, ReviewResults, StructuredRequirement
 
 logger = logging.getLogger(__name__)
@@ -32,7 +39,7 @@ PROMPT_TEMPLATE = (
     "3. 投入产出比 (roi)\n"
     "4. 系统兼容性 (system_compatibility)\n\n"
     "并给出总体结论 (verdict: 通过/反对/中立)。\n"
-    "请以JSON格式返回，例如：\n"
+    "请仅输出JSON，不要额外解释：\n"
     '{{"business_value":4,"technical_feasibility":4,"roi":3,"system_compatibility":4,"verdict":"通过","comments":"..."}}'
 )
 
@@ -116,17 +123,27 @@ class ReviewAgent:
             summary=requirement.summary,
         )
 
-    def score(self, requirement: StructuredRequirement) -> DimensionScores:
+    def _build_task_spec(self, requirement: StructuredRequirement) -> TaskSpec:
         prompt = self._build_prompt(requirement)
-        try:
-            raw = self.call_llm(prompt)
-        except Exception as e:
-            raise LLMCallError(self.role_name, 0, e)
+        return TaskSpec(
+            role=self.role_name,
+            objective=f"评审需求 {requirement.id}",
+            stage="review",
+            inputs={"prompt": prompt, "requirement_id": requirement.id},
+            output_contract=OutputContract(
+                structured_fields=[
+                    "business_value", "technical_feasibility",
+                    "roi", "system_compatibility", "verdict", "comments",
+                ],
+            ),
+        )
 
+    @staticmethod
+    def _parse_scores(role_name: str, raw: str) -> dict:
         try:
             data = json.loads(raw)
         except json.JSONDecodeError:
-            raise ScoreParseError(self.role_name, raw)
+            raise ScoreParseError(role_name, raw)
 
         try:
             business_value = int(data["business_value"])
@@ -135,19 +152,72 @@ class ReviewAgent:
             system_compatibility = int(data["system_compatibility"])
             verdict_str = data["verdict"]
         except (KeyError, ValueError, TypeError) as e:
-            raise ScoreParseError(self.role_name, raw)
+            raise ScoreParseError(role_name, raw)
 
         if not all(1 <= v <= 5 for v in [business_value, technical_feasibility, roi, system_compatibility]):
-            raise ScoreParseError(self.role_name, f"Scores out of 1-5 range: {raw}")
+            raise ScoreParseError(role_name, f"Scores out of 1-5 range: {raw}")
 
-        verdict = Verdict(verdict_str)
+        return {
+            "business_value": business_value,
+            "technical_feasibility": technical_feasibility,
+            "roi": roi,
+            "system_compatibility": system_compatibility,
+            "verdict": verdict_str,
+            "comments": data.get("comments"),
+        }
 
+    def _parse_result(self, result: AgentRunResult) -> DimensionScores:
+        if result.structured:
+            data = result.structured
+        else:
+            data = self._parse_scores(self.role_name, result.stdout)
+
+        verdict = Verdict(data["verdict"])
         return DimensionScores(
             agent_role=self.role_name,
-            business_value=business_value,
-            technical_feasibility=technical_feasibility,
-            roi=roi,
-            system_compatibility=system_compatibility,
+            business_value=int(data["business_value"]),
+            technical_feasibility=int(data["technical_feasibility"]),
+            roi=int(data["roi"]),
+            system_compatibility=int(data["system_compatibility"]),
+            verdict=verdict,
+            comments=data.get("comments"),
+        )
+
+    def score(self, requirement: StructuredRequirement,
+              adapter: CodeAgentAdapter | None = None,
+              workspace: Workspace | None = None) -> DimensionScores:
+        if adapter is not None and workspace is not None:
+            return self._score_via_adapter(requirement, adapter, workspace)
+        return self._score_via_llm(requirement)
+
+    def _score_via_adapter(self, requirement: StructuredRequirement,
+                           adapter: CodeAgentAdapter,
+                           workspace: Workspace) -> DimensionScores:
+        task = self._build_task_spec(requirement)
+        try:
+            result = adapter.execute(task, workspace)
+        except Exception as e:
+            raise LLMCallError(self.role_name, 0, e)
+        try:
+            return self._parse_result(result)
+        except ScoreParseError:
+            raise ScoreParseError(self.role_name, result.stdout)
+
+    def _score_via_llm(self, requirement: StructuredRequirement) -> DimensionScores:
+        prompt = self._build_prompt(requirement)
+        try:
+            raw = self.call_llm(prompt)
+        except Exception as e:
+            raise LLMCallError(self.role_name, 0, e)
+
+        data = self._parse_scores(self.role_name, raw)
+        verdict = Verdict(data["verdict"])
+        return DimensionScores(
+            agent_role=self.role_name,
+            business_value=data["business_value"],
+            technical_feasibility=data["technical_feasibility"],
+            roi=data["roi"],
+            system_compatibility=data["system_compatibility"],
             verdict=verdict,
             comments=data.get("comments"),
         )
@@ -157,8 +227,11 @@ class ReviewTeam:
     MAX_RETRIES = 3
     AGENT_ROLES = ["产品分析", "价值评估", "技术可行性"]
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, adapter: CodeAgentAdapter | None = None,
+                 workspace_manager: WorkspaceManager | None = None):
         self._session = session
+        self._adapter = adapter
+        self._wm = workspace_manager
         self._agents = [ReviewAgent(role) for role in self.AGENT_ROLES]
 
     def _load_requirement(self, req_id: str) -> StructuredRequirement:
@@ -195,10 +268,11 @@ class ReviewTeam:
         logger.error("Agent %s failed after retries: %s", role_name, error)
 
     def _execute_agent(
-        self, agent: ReviewAgent, requirement: StructuredRequirement
+        self, agent: ReviewAgent, requirement: StructuredRequirement,
+        workspace: Workspace | None = None,
     ) -> DimensionScores | None:
         return retry_with_backoff(
-            lambda: agent.score(requirement),
+            lambda: agent.score(requirement, self._adapter, workspace),
             max_retries=self.MAX_RETRIES,
             on_exhausted=lambda e: self._notify_agent_failure(agent.role_name, e),
         )
@@ -206,11 +280,16 @@ class ReviewTeam:
     def run_scoring(self, req_id: str) -> list[DimensionScores]:
         requirement = self._load_requirement(req_id)
 
+        ws: Workspace | None = None
+        if self._adapter is not None or self._wm is not None:
+            wm = self._wm or WorkspaceManager()
+            ws = wm.acquire_workspace(req_id, "review")
+
         results: list[DimensionScores] = []
 
         with ThreadPoolExecutor(max_workers=len(self._agents)) as executor:
             future_to_agent = {
-                executor.submit(self._execute_agent, agent, requirement): agent
+                executor.submit(self._execute_agent, agent, requirement, ws): agent
                 for agent in self._agents
             }
             for future in as_completed(future_to_agent):
@@ -223,6 +302,10 @@ class ReviewTeam:
                 if result is not None:
                     self._persist_score(req_id, result)
                     results.append(result)
+
+        if ws is not None:
+            wm = self._wm or WorkspaceManager()
+            wm.release_workspace(req_id, "review")
 
         if not results:
             raise AllAgentsFailedError(req_id)

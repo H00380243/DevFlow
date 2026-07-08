@@ -1,6 +1,7 @@
 """Design Team — F012 设计团多角色产出.
 
 Implements 3-role parallel design agent execution with exponential backoff retry.
+v2 (F028): Delegates execution to CodeAgentAdapter via adapter.execute().
 """
 
 import json
@@ -13,8 +14,12 @@ from typing import Callable, TypeVar
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.core.adapters.base import (
+    AgentRunResult, CodeAgentAdapter, OutputContract, TaskSpec, Workspace,
+)
 from app.core.state_machine import RequirementNotFoundError
 from app.core.review_scoring import LLMCallError, retry_with_backoff
+from app.core.workspace_manager import WorkspaceManager
 from app.models import DesignResults, Requirements, StructuredRequirement
 
 logger = logging.getLogger(__name__)
@@ -120,7 +125,79 @@ class DesignAgent:
             role_specific_fields=role_info["fields"],
         )
 
-    def design(self, requirement: StructuredRequirement) -> DesignOutput:
+    def _build_task_spec(self, requirement: StructuredRequirement) -> TaskSpec:
+        prompt = self._build_prompt(requirement)
+        return TaskSpec(
+            role=self.role_name,
+            objective=f"概要设计需求 {requirement.id}",
+            stage="design",
+            inputs={"prompt": prompt, "requirement_id": requirement.id},
+            output_contract=OutputContract(
+                structured_fields=["document_content", "user_flow",
+                                   "skeleton_dirs", "core_interfaces",
+                                   "risk_warnings", "recommendations",
+                                   "has_high_risk"],
+            ),
+        )
+
+    def design(self, requirement: StructuredRequirement,
+               adapter: CodeAgentAdapter | None = None,
+               workspace: Workspace | None = None) -> DesignOutput:
+        if adapter is not None and workspace is not None:
+            return self._design_via_adapter(requirement, adapter, workspace)
+        return self._design_via_llm(requirement)
+
+    def _design_via_adapter(self, requirement: StructuredRequirement,
+                            adapter: CodeAgentAdapter,
+                            workspace: Workspace) -> DesignOutput:
+        task = self._build_task_spec(requirement)
+        try:
+            result = adapter.execute(task, workspace)
+        except Exception as e:
+            raise LLMCallError(self.role_name, 0, e)
+        return self._parse_result(result)
+
+    def _parse_result(self, result: AgentRunResult) -> DesignOutput:
+        if result.structured:
+            data = result.structured
+        else:
+            try:
+                data = json.loads(result.stdout)
+            except json.JSONDecodeError:
+                raise DesignParseError(self.role_name, result.stdout)
+
+        raw = json.dumps(data, ensure_ascii=False)
+        if self.role_name == "产品设计":
+            doc_content = data.get("document_content", "")
+            user_flow = data.get("user_flow", "")
+            return DesignOutput(
+                agent_role=self.role_name,
+                raw_text=raw,
+                document_content=doc_content,
+                user_flow=user_flow,
+            )
+        elif self.role_name == "技术选型":
+            dirs = data.get("skeleton_dirs", [])
+            ifaces = data.get("core_interfaces", [])
+            return DesignOutput(
+                agent_role=self.role_name,
+                raw_text=raw,
+                skeleton_dirs=dirs,
+                core_interfaces=ifaces,
+            )
+        elif self.role_name == "合规风控":
+            warnings = data.get("risk_warnings", [])
+            recs = data.get("recommendations", "")
+            high_risk = data.get("has_high_risk", False)
+            return DesignOutput(
+                agent_role=self.role_name,
+                raw_text=raw,
+                risk_warnings=warnings,
+                recommendations=recs,
+                has_high_risk=high_risk,
+            )
+
+    def _design_via_llm(self, requirement: StructuredRequirement) -> DesignOutput:
         prompt = self._build_prompt(requirement)
         try:
             raw = self.call_llm(prompt)
@@ -170,8 +247,11 @@ class DesignTeam:
     MAX_RETRIES = 3
     AGENT_ROLES = ["产品设计", "技术选型", "合规风控"]
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Session, adapter: CodeAgentAdapter | None = None,
+                 workspace_manager: WorkspaceManager | None = None):
         self._session = session
+        self._adapter = adapter
+        self._wm = workspace_manager
         self._agents = [DesignAgent(role) for role in self.AGENT_ROLES]
 
     def _load_requirement(self, req_id: str) -> StructuredRequirement:
@@ -218,10 +298,11 @@ class DesignTeam:
         logger.error("Design Agent %s failed after retries: %s", role_name, error)
 
     def _execute_agent(
-        self, agent: DesignAgent, requirement: StructuredRequirement
+        self, agent: DesignAgent, requirement: StructuredRequirement,
+        workspace: Workspace | None = None,
     ) -> DesignOutput | None:
         return retry_with_backoff(
-            lambda: agent.design(requirement),
+            lambda: agent.design(requirement, self._adapter, workspace),
             max_retries=self.MAX_RETRIES,
             on_exhausted=lambda e: self._notify_agent_failure(agent.role_name, e),
         )
@@ -258,11 +339,16 @@ class DesignTeam:
         requirement = self._load_requirement(req_id)
         version = self._get_next_version(req_id)
 
+        ws: Workspace | None = None
+        if self._adapter is not None or self._wm is not None:
+            wm = self._wm or WorkspaceManager()
+            ws = wm.acquire_workspace(req_id, "design")
+
         results: list[DesignOutput] = []
 
         with ThreadPoolExecutor(max_workers=len(self._agents)) as executor:
             future_to_agent = {
-                executor.submit(self._execute_agent, agent, requirement): agent
+                executor.submit(self._execute_agent, agent, requirement, ws): agent
                 for agent in self._agents
             }
             for future in as_completed(future_to_agent):
@@ -275,6 +361,10 @@ class DesignTeam:
                 if result is not None:
                     self._persist_output(req_id, result, version)
                     results.append(result)
+
+        if ws is not None:
+            wm = self._wm or WorkspaceManager()
+            wm.release_workspace(req_id, "design")
 
         if not results:
             raise AllAgentsFailedError(req_id)

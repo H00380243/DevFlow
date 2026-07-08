@@ -285,9 +285,7 @@ class TestImplementationTeamFullSuccess:
                 ambiguity_notes=d["ambiguity_notes"],
             )
 
-        original = team._execute_agent
-
-        def _execute_side_effect(agent, doc):
+        def _execute_side_effect(agent, doc, _ws=None):
             return mock_generate(agent.role_name, doc)
 
         team._execute_agent = _execute_side_effect
@@ -314,7 +312,7 @@ class TestImplementationTeamDedupByPath:
         team = ImplementationTeam(session=db_session)
         team._load_design_output = MagicMock(return_value=design_doc)
 
-        def _execute_side_effect(agent, doc):
+        def _execute_side_effect(agent, doc, _ws=None):
             return CodeOutput(
                 agent_role=agent.role_name,
                 raw_text="mock raw",
@@ -344,7 +342,7 @@ class TestImplementationTeamPartialSuccess:
 
         call_count = {"backend": 0}
 
-        def _execute_side_effect(agent, doc):
+        def _execute_side_effect(agent, doc, _ws=None):
             if agent.role_name == "后端开发":
                 return CodeOutput(
                     agent_role="后端开发",
@@ -393,7 +391,7 @@ class TestImplementationTeamEmptyCodeFiles:
         team = ImplementationTeam(session=db_session)
         team._load_design_output = MagicMock(return_value=design_doc)
 
-        def _execute_side_effect(agent, doc):
+        def _execute_side_effect(agent, doc, _ws=None):
             return CodeOutput(
                 agent_role=agent.role_name,
                 raw_text="mock raw",
@@ -450,7 +448,7 @@ class TestImplementationTeamParallelExecution:
         team = ImplementationTeam(session=db_session)
         team._load_design_output = MagicMock(return_value=design_doc)
 
-        def _execute_side_effect(agent, doc):
+        def _execute_side_effect(agent, doc, _ws=None):
             time.sleep(0.3)
             return CodeOutput(
                 agent_role=agent.role_name,

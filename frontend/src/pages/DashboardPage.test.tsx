@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { DashboardPage } from './DashboardPage'
 
 beforeEach(() => {
@@ -13,7 +14,7 @@ describe('DashboardPage', () => {
         headers: { 'Content-Type': 'application/json' },
       })
     )
-    render(<DashboardPage />)
+    render(<MemoryRouter><DashboardPage /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByText('10')).toBeInTheDocument()
     })
@@ -30,7 +31,7 @@ describe('DashboardPage', () => {
         headers: { 'Content-Type': 'application/json' },
       })
     )
-    const { container } = render(<DashboardPage />)
+    const { container } = render(<MemoryRouter><DashboardPage /></MemoryRouter>)
     await waitFor(() => {
       expect(container.querySelector('.empty-state')).toBeInTheDocument()
     })
@@ -48,7 +49,7 @@ describe('DashboardPage', () => {
         { headers: { 'Content-Type': 'application/json' } }
       )
     )
-    render(<DashboardPage />)
+    render(<MemoryRouter><DashboardPage /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByText('异常')).toBeInTheDocument()
     })
@@ -56,7 +57,7 @@ describe('DashboardPage', () => {
 
   it('shows loading skeleton initially', () => {
     vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise(() => {}))
-    const { container } = render(<DashboardPage />)
+    const { container } = render(<MemoryRouter><DashboardPage /></MemoryRouter>)
     expect(container.querySelector('.metric-skeleton')).toBeInTheDocument()
   })
 })

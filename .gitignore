@@ -27,6 +27,9 @@ htmlcov/
 mutants/
 .mutmut-cache
 
+# pytest artifacts
+MagicMock/
+
 # Runtime data — SQLite dbs and Huey queue files (created on demand by the app)
 data/
 huey.db

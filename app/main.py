@@ -139,3 +139,4 @@ def create_app() -> FastAPI:
             db.close()
 
     return app
+

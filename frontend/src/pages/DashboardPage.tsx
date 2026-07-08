@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Empty, message, Row, Col } from 'antd'
+import { Empty, message, Row, Col, Button } from 'antd'
+import { useNavigate } from 'react-router-dom'
 import { MetricCard } from '../components/MetricCard'
 
 interface Metrics {
@@ -10,6 +11,7 @@ interface Metrics {
 }
 
 export function DashboardPage() {
+  const navigate = useNavigate()
   const [data, setData] = useState<Metrics | null>(null)
   const [loading, setLoading] = useState(true)
   const [errors, setErrors] = useState<string[]>([])
@@ -65,6 +67,13 @@ export function DashboardPage() {
         </Col>
         <Col span={8}>
           <MetricCard label="进行中" value={String(data.in_progress_count)} />
+        </Col>
+      </Row>
+      <Row style={{ marginTop: 24 }}>
+        <Col>
+          <Button type="primary" onClick={() => navigate('/requirements')}>
+            查看全部需求
+          </Button>
         </Col>
       </Row>
     </div>
