@@ -1,7 +1,10 @@
 """Requirements Service — F021 需求列表与筛选搜索.
 
-Provides RequirementsService.get_requirements() with filtered, paginated queries.
+Provides RequirementsService.get_requirements() with filtered, paginated queries,
+and create_requirement() for manual requirement intake.
 """
+
+from datetime import datetime, timezone
 
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
@@ -78,4 +81,70 @@ class RequirementsService:
             "total": total,
             "page": page,
             "page_size": page_size,
+        }
+
+    @staticmethod
+    def create_requirement(
+        db: Session,
+        original_text: str,
+        summary: str,
+        submitter_id: str,
+        submitter_name: str | None = None,
+        tags: list[str] | None = None,
+    ) -> dict:
+        """Create a new requirement manually.
+
+        Generates sequential ID (REQ-YYYYMMDD-NNN), sets initial stage/status.
+
+        Args:
+            db: SQLAlchemy session.
+            original_text: Full requirement description.
+            summary: Short summary.
+            submitter_id: Submitter user ID.
+            submitter_name: Optional display name.
+            tags: Optional list of tags.
+
+        Returns:
+            dict of the created requirement.
+        """
+        today = datetime.now(timezone.utc).strftime("%Y%m%d")
+        prefix = f"REQ-{today}-"
+
+        last = (
+            db.query(Requirements)
+            .filter(Requirements.id.like(f"{prefix}%"))
+            .order_by(Requirements.id.desc())
+            .first()
+        )
+        if last:
+            seq = int(last.id.split("-")[-1]) + 1
+        else:
+            seq = 1
+
+        req_id = f"{prefix}{seq:03d}"
+
+        now = datetime.now(timezone.utc)
+        req = Requirements(
+            id=req_id,
+            original_text=original_text,
+            summary=summary,
+            submitter_id=submitter_id,
+            submitter_name=submitter_name or submitter_id,
+            tags=tags or [],
+            created_at=now,
+            updated_at=now,
+            current_stage="review",
+            current_status="PENDING_REVIEW",
+        )
+        db.add(req)
+        db.commit()
+        db.refresh(req)
+
+        return {
+            "id": req.id,
+            "summary": req.summary,
+            "submitter_name": req.submitter_name,
+            "created_at": req.created_at.isoformat() if req.created_at else None,
+            "current_stage": req.current_stage,
+            "current_status": req.current_status,
         }

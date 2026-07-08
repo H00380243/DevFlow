@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Table, Select, Input, Empty, message, Row, Col } from 'antd'
+import { Table, Select, Input, Empty, message, Row, Col, Button, Modal, Form } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import type { ColumnsType } from 'antd/es/table'
 
@@ -36,6 +37,9 @@ export function RequirementsListPage() {
   const [stage, setStage] = useState<string | undefined>()
   const [status, setStatus] = useState<string | undefined>()
   const [search, setSearch] = useState('')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [form] = Form.useForm()
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -56,6 +60,32 @@ export function RequirementsListPage() {
   }, [page, stage, status, search])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields()
+      setSubmitting(true)
+      const resp = await fetch('/api/requirements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      })
+      if (!resp.ok) {
+        const err = await resp.json()
+        throw new Error(err.detail || '创建失败')
+      }
+      message.success('需求创建成功')
+      setModalOpen(false)
+      form.resetFields()
+      setPage(1)
+      fetchData()
+    } catch (e: any) {
+      if (e.errorFields) return
+      message.error(e.message || '创建失败')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <div>
@@ -94,6 +124,11 @@ export function RequirementsListPage() {
             style={{ width: 240 }}
           />
         </Col>
+        <Col>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
+            添加需求
+          </Button>
+        </Col>
       </Row>
       {data && data.items.length === 0 && !loading ? (
         <Empty description="暂无匹配需求" />
@@ -113,6 +148,35 @@ export function RequirementsListPage() {
           }}
         />
       )}
+
+      <Modal
+        title="添加需求"
+        open={modalOpen}
+        onOk={handleSubmit}
+        onCancel={() => { setModalOpen(false); form.resetFields() }}
+        confirmLoading={submitting}
+        okText="创建"
+        cancelText="取消"
+        destroyOnHidden
+      >
+        <Form form={form} layout="vertical" autoComplete="off">
+          <Form.Item name="original_text" label="需求描述" rules={[{ required: true, message: '请输入需求描述' }]}>
+            <Input.TextArea rows={4} placeholder="请输入需求详细描述" />
+          </Form.Item>
+          <Form.Item name="summary" label="摘要" rules={[{ required: true, message: '请输入需求摘要' }]}>
+            <Input placeholder="简短的需求摘要" />
+          </Form.Item>
+          <Form.Item name="submitter_id" label="提交人 ID" rules={[{ required: true, message: '请输入提交人 ID' }]}>
+            <Input placeholder="user001" />
+          </Form.Item>
+          <Form.Item name="submitter_name" label="提交人姓名">
+            <Input placeholder="显示名称（可选）" />
+          </Form.Item>
+          <Form.Item name="tags" label="标签">
+            <Select mode="tags" placeholder="输入标签后回车" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   )
 }

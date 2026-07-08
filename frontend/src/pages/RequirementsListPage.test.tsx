@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { RequirementsListPage } from './RequirementsListPage'
 
@@ -32,7 +33,33 @@ describe('RequirementsListPage', () => {
     })
   })
 
-  it('renders table with 7 columns', async () => {
+  it('renders add requirement button', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ items: [], total: 0, page: 1, page_size: 10 }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    )
+    render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
+    await waitFor(() => {
+      expect(screen.getByText('添加需求')).toBeInTheDocument()
+    })
+  })
+
+  it('opens modal on button click', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ items: [], total: 0, page: 1, page_size: 10 }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    )
+    render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
+    const btn = await screen.findByText('添加需求')
+    await userEvent.click(btn)
+    await waitFor(() => {
+      expect(screen.getByText('需求描述')).toBeInTheDocument()
+    })
+  })
+
+  it('renders table with 6 columns', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       new Response(
         JSON.stringify({

@@ -88,6 +88,32 @@ def create_app() -> FastAPI:
         finally:
             db.close()
 
+    @app.post("/api/requirements")
+    async def create_requirement(body: dict):
+        """Create a new requirement manually.
+
+        Body: {"original_text": "...", "summary": "...", "submitter_id": "...",
+               "submitter_name": "...", "tags": [...]}
+        """
+        from app.core.requirements_service import RequirementsService
+        db = next(get_db())
+        try:
+            result = RequirementsService.create_requirement(
+                db,
+                original_text=body.get("original_text", ""),
+                summary=body.get("summary", ""),
+                submitter_id=body.get("submitter_id", ""),
+                submitter_name=body.get("submitter_name"),
+                tags=body.get("tags"),
+            )
+            return result
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()
+
     @app.get("/api/requirements/{req_id}")
     async def get_requirement_detail(req_id: str):
         """Return full detail of a single requirement by ID."""
