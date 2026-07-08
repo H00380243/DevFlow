@@ -32,6 +32,16 @@
 - F022 需求详情页 — RequirementDetailService.get_detail() 关联加载评审/设计/实施/状态历史、GET /api/requirements/{id}；前端 RequirementDetailPage 左右双栏布局（Descriptions + Timeline）、标签/徽章/加载/错误状态；15 tests（10 后端 + 5 前端）
 - F023 看板操作与 IM 同步 — RequirementActionService.execute_action() 状态机流转（PENDING_REVIEW/DESIGN_CONFIRM/IMPL_CONFIRM 等）、POST /api/requirements/{id}/action；前端确认/驳回按钮（状态感知）+ 驳回原因 Modal；13 tests（8 后端 + 5 前端）
 
+### System Testing (2026-07-09)
+- ST Plan: `docs/plans/2026-07-09-st-plan.md` — 26 scenarios, 100% RTM
+- Regression: 437 tests passed (419 backend + 18 frontend)
+- Integration: 13 cross-feature tests (webhook→parser→state-machine)
+- Full-Pipeline Smoke: 2 critical paths verified (create→query→transition→action→verify)
+- E2E: 4 scenarios (submitter confirm/reject + admin arbitration)
+- NFR: 7 tests — permission (NFR-006), audit (NFR-007), secret detection (NFR-008), configurability (NFR-010)
+- Verdict: **GO** — 0 defects, all exit criteria met
+- ST Report: `docs/plans/2026-07-09-st-report.md`
+
 ### Changed
 - (none yet)
 

@@ -395,3 +395,38 @@ Total tests: 419 backend pytest + 18 frontend Vitest = 437 total
 Project initialized. 23 features created (19 P0 + 4 P1).
 
 Next: F001 项目骨架与基础设施
+
+---
+
+## Session ST — 2026-07-09
+**Phase**: System Testing (long-task-st)
+**Verdict**: GO ✅
+
+### Steps Executed
+1. **Readiness Gate**: All 23 features passing, 437 tests passing.
+2. **ST Plan**: Created `docs/plans/2026-07-09-st-plan.md` — RTM (26 FR/NFR), entry/exit criteria, risk-based category allocation (6 integration + 1 smoke + 1 E2E + 1 NFR = 9 categories, 26 scenarios).
+3. **Regression**: 419 backend pytest + 18 frontend Vitest = 437 tests, 0 failures.
+4. **Integration Tests** (13): `test_integration_webhook.py` (6) + `test_integration_state_machine.py` (7) — cross-feature flows: webhook→parser→idempotency→DB, state transitions across F007→F010/F014/F017.
+5. **Smoke Tests** (2): `test_smoke_pipeline.py` — critical path (create→query→transition→action→verify).
+6. **E2E Tests** (4): `test_e2e_workflows.py` — submitter confirm/reject, admin arbitration/dashboard.
+7. **NFR Tests** (7): `test_nfr.py` — unauthorized rejection (NFR-006), status history audit (NFR-007), secret detection 8 patterns (NFR-008), IM/LLM platform configurability (NFR-010).
+
+### Results
+| Category | Tests | Pass | Fail |
+|----------|-------|------|------|
+| Regression | 437 | 437 | 0 |
+| Integration | 13 | 13 | 0 |
+| Smoke | 2 | 2 | 0 |
+| E2E | 4 | 4 | 0 |
+| NFR | 7 | 7 | 0 |
+| **Total** | **463** | **463** | **0** |
+
+- Defects found: **0**
+- RTM coverage: **26/26 (100%)**
+- Line coverage: 93% | Branch coverage: 91%
+
+### Finalize
+- Examples: Skipped (no SubAgent available) — non-blocking
+- RELEASE_NOTES.md: Updated with ST completion
+- task-progress.md: Updated with ST session summary
+- Git: cab9a98 — final ST commit
