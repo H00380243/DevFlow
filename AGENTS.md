@@ -108,7 +108,7 @@
   - RequirementDetailPage (left Descriptions + right Timeline), tags/badges/loading/error states
   - 15 tests (10 backend + 5 frontend Vitest), ST skipped
   - Report: `docs/report/feature-22-requirement-detail-report.md`
-- **F023 (看板操作与 IM 同步): PASS** — git `waiting`
+- **F023 (看板操作与 IM 同步): PASS** — git `176c65c`
   - RequirementActionService.execute_action() (state machine confirm/reject), POST /api/requirements/{id}/action
   - Confirm/Reject buttons + reject reason Modal on detail page
   - 13 tests (8 backend + 5 frontend), ST skipped
