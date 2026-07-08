@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Table, Select, Input, Empty, message, Row, Col, Button, Modal, Form } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import type { ColumnsType } from 'antd/es/table'
 
@@ -20,14 +20,25 @@ interface PageData {
   page_size: number
 }
 
-const columns: ColumnsType<Requirement> = [
-  { title: 'ID', dataIndex: 'id', key: 'id', width: 180 },
-  { title: '摘要', dataIndex: 'summary', key: 'summary' },
-  { title: '提交人', dataIndex: 'submitter_name', key: 'submitter_name', width: 120 },
-  { title: '时间', dataIndex: 'created_at', key: 'created_at', width: 180, render: (v: string | null) => v ? new Date(v).toLocaleDateString('zh-CN') : '-' },
-  { title: '阶段', dataIndex: 'current_stage', key: 'current_stage', width: 120 },
-  { title: '状态', dataIndex: 'current_status', key: 'current_status', width: 120 },
-]
+const CONFIRM_STATUSES = new Set(['PENDING_REVIEW', 'DESIGN_PENDING_CONFIRM', 'IMPL_PENDING_ACCEPTANCE'])
+const REJECT_STATUSES = new Set(['PENDING_REVIEW', 'DESIGN_PENDING_CONFIRM', 'IMPL_PENDING_ACCEPTANCE', 'PENDING_ARBITRATION'])
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING_REVIEW: '待评审',
+  REVIEW_APPROVED: '评审通过',
+  PENDING_ARBITRATION: '待仲裁',
+  REJECTED: '已驳回',
+  IN_DESIGN: '设计中',
+  DESIGN_PENDING_CONFIRM: '待确认设计',
+  DESIGN_CONFIRMED: '设计已确认',
+  DESIGN_REJECTED: '设计驳回',
+  IN_IMPLEMENTATION: '实施中',
+  IMPL_PENDING_ACCEPTANCE: '待验收',
+  IMPL_APPROVED: '实施通过',
+  IMPL_REJECTED: '实施驳回',
+  DELIVERED: '已交付',
+  TERMINATED: '已终止',
+}
 
 export function RequirementsListPage() {
   const navigate = useNavigate()
@@ -40,6 +51,9 @@ export function RequirementsListPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [form] = Form.useForm()
+  const [rejectReqId, setRejectReqId] = useState<string | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [rejectSubmitting, setRejectSubmitting] = useState(false)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -60,6 +74,48 @@ export function RequirementsListPage() {
   }, [page, stage, status, search])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  const handleAction = async (reqId: string, action: string, reason = '') => {
+    try {
+      const resp = await fetch(`/api/requirements/${reqId}/action`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, reason, user_id: 'current-user' }),
+      })
+      const result = await resp.json()
+      if (result.status === 'ok') {
+        message.success(result.message)
+        fetchData()
+      } else {
+        message.error(result.message)
+      }
+    } catch {
+      message.error('操作失败')
+    }
+  }
+
+  const handleConfirm = async (e: React.MouseEvent, reqId: string) => {
+    e.stopPropagation()
+    await handleAction(reqId, 'confirm')
+  }
+
+  const openRejectModal = (e: React.MouseEvent, reqId: string) => {
+    e.stopPropagation()
+    setRejectReqId(reqId)
+    setRejectReason('')
+  }
+
+  const handleRejectSubmit = async () => {
+    if (!rejectReqId) return
+    if (!rejectReason.trim()) {
+      message.warning('请填写驳回原因')
+      return
+    }
+    setRejectSubmitting(true)
+    await handleAction(rejectReqId, 'reject', rejectReason)
+    setRejectSubmitting(false)
+    setRejectReqId(null)
+  }
 
   const handleSubmit = async () => {
     try {
@@ -86,6 +142,51 @@ export function RequirementsListPage() {
       setSubmitting(false)
     }
   }
+
+  const columns: ColumnsType<Requirement> = [
+    { title: 'ID', dataIndex: 'id', key: 'id', width: 180 },
+    { title: '摘要', dataIndex: 'summary', key: 'summary' },
+    { title: '提交人', dataIndex: 'submitter_name', key: 'submitter_name', width: 120 },
+    {
+      title: '时间', dataIndex: 'created_at', key: 'created_at', width: 180,
+      render: (v: string | null) => v ? new Date(v).toLocaleDateString('zh-CN') : '-',
+    },
+    {
+      title: '阶段', dataIndex: 'current_stage', key: 'current_stage', width: 120,
+    },
+    {
+      title: '状态', dataIndex: 'current_status', key: 'current_status', width: 120,
+      render: (v: string) => STATUS_LABELS[v] || v,
+    },
+    {
+      title: '操作', key: 'action', width: 180,
+      render: (_: unknown, record: Requirement) => (
+        <span onClick={(e) => e.stopPropagation()}>
+          {CONFIRM_STATUSES.has(record.current_status) && (
+            <Button
+              type="primary"
+              size="small"
+              icon={<CheckOutlined />}
+              style={{ marginRight: 8 }}
+              onClick={(e) => handleConfirm(e, record.id)}
+            >
+              确认
+            </Button>
+          )}
+          {REJECT_STATUSES.has(record.current_status) && (
+            <Button
+              danger
+              size="small"
+              icon={<CloseOutlined />}
+              onClick={(e) => openRejectModal(e, record.id)}
+            >
+              驳回
+            </Button>
+          )}
+        </span>
+      ),
+    },
+  ]
 
   return (
     <div>
@@ -176,6 +277,27 @@ export function RequirementsListPage() {
             <Select mode="tags" placeholder="输入标签后回车" />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="驳回需求"
+        open={rejectReqId !== null}
+        onOk={handleRejectSubmit}
+        onCancel={() => setRejectReqId(null)}
+        confirmLoading={rejectSubmitting}
+        okText="驳回"
+        cancelText="取消"
+        okButtonProps={{ danger: true }}
+        destroyOnHidden
+      >
+        <p>确定要驳回需求 <strong>{rejectReqId}</strong> 吗？</p>
+        <Input.TextArea
+          placeholder="请输入驳回原因（必填）"
+          rows={3}
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          style={{ marginTop: 12 }}
+        />
       </Modal>
     </div>
   )

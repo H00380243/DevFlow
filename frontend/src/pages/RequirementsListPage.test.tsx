@@ -8,13 +8,17 @@ beforeEach(() => {
   vi.restoreAllMocks()
 })
 
+function mockFetch(items: any[] = [], total = 0) {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+    new Response(JSON.stringify({ items, total, page: 1, page_size: 10 }), {
+      headers: { 'Content-Type': 'application/json' },
+    })
+  )
+}
+
 describe('RequirementsListPage', () => {
   it('renders page title', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify({ items: [], total: 0, page: 1, page_size: 10 }), {
-        headers: { 'Content-Type': 'application/json' },
-      })
-    )
+    mockFetch()
     render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByText('需求列表')).toBeInTheDocument()
@@ -22,11 +26,7 @@ describe('RequirementsListPage', () => {
   })
 
   it('renders filter selects', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify({ items: [], total: 0, page: 1, page_size: 10 }), {
-        headers: { 'Content-Type': 'application/json' },
-      })
-    )
+    mockFetch()
     const { container } = render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       expect(container.querySelectorAll('.ant-select').length).toBeGreaterThanOrEqual(2)
@@ -34,11 +34,7 @@ describe('RequirementsListPage', () => {
   })
 
   it('renders add requirement button', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify({ items: [], total: 0, page: 1, page_size: 10 }), {
-        headers: { 'Content-Type': 'application/json' },
-      })
-    )
+    mockFetch()
     render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       expect(screen.getByText('添加需求')).toBeInTheDocument()
@@ -46,11 +42,7 @@ describe('RequirementsListPage', () => {
   })
 
   it('opens modal on button click', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify({ items: [], total: 0, page: 1, page_size: 10 }), {
-        headers: { 'Content-Type': 'application/json' },
-      })
-    )
+    mockFetch()
     render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     const btn = await screen.findByText('添加需求')
     await userEvent.click(btn)
@@ -59,22 +51,74 @@ describe('RequirementsListPage', () => {
     })
   })
 
-  it('renders table with 6 columns', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(
-        JSON.stringify({
-          items: [{ id: 'REQ-001', summary: 'test', submitter_name: 'user1', created_at: '2026-07-09T00:00:00', current_stage: 'review', current_status: 'PENDING_REVIEW' }],
-          total: 1,
-          page: 1,
-          page_size: 10,
-        }),
-        { headers: { 'Content-Type': 'application/json' } }
-      )
-    )
+  it('renders table with 7 columns', async () => {
+    mockFetch([{
+      id: 'REQ-001', summary: 'test', submitter_name: 'user1',
+      created_at: '2026-07-09T00:00:00', current_stage: 'review', current_status: 'PENDING_REVIEW',
+    }])
     const { container } = render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       const headers = container.querySelectorAll('.ant-table-thead th')
-      expect(headers.length).toBe(6)
+      expect(headers.length).toBe(7)
+    })
+  })
+
+  it('renders action buttons for actionable status', async () => {
+    mockFetch([{
+      id: 'REQ-001', summary: 'test', submitter_name: 'user1',
+      created_at: '2026-07-09T00:00:00', current_stage: 'review', current_status: 'PENDING_REVIEW',
+    }])
+    render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
+    await waitFor(() => {
+      expect(screen.getByText('确认')).toBeInTheDocument()
+      expect(screen.getByText('驳回')).toBeInTheDocument()
+    })
+  })
+
+  it('does not render action buttons for non-actionable status', async () => {
+    mockFetch([{
+      id: 'REQ-002', summary: 'test2', submitter_name: 'user1',
+      created_at: '2026-07-09T00:00:00', current_stage: 'implementation', current_status: 'IN_IMPLEMENTATION',
+    }])
+    render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
+    await waitFor(() => {
+      expect(screen.queryByText('确认')).not.toBeInTheDocument()
+      expect(screen.queryByText('驳回')).not.toBeInTheDocument()
+    })
+  })
+
+  it('calls confirm action API on button click', async () => {
+    mockFetch([{
+      id: 'REQ-001', summary: 'test', submitter_name: 'user1',
+      created_at: '2026-07-09T00:00:00', current_stage: 'review', current_status: 'PENDING_REVIEW',
+    }])
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ status: 'ok', message: '已确认' }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    )
+
+    render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
+    const confirmBtn = await screen.findByText('确认')
+    await userEvent.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(screen.getByText('已确认')).toBeInTheDocument()
+    })
+  })
+
+  it('opens reject modal with reason field', async () => {
+    mockFetch([{
+      id: 'REQ-001', summary: 'test', submitter_name: 'user1',
+      created_at: '2026-07-09T00:00:00', current_stage: 'review', current_status: 'PENDING_REVIEW',
+    }])
+    render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
+    const rejectBtn = await screen.findByText('驳回')
+    await userEvent.click(rejectBtn)
+
+    await waitFor(() => {
+      expect(screen.getByText('驳回需求')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('请输入驳回原因（必填）')).toBeInTheDocument()
     })
   })
 
@@ -95,11 +139,7 @@ describe('RequirementsListPage', () => {
   })
 
   it('renders empty state when no items', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify({ items: [], total: 0, page: 1, page_size: 10 }), {
-        headers: { 'Content-Type': 'application/json' },
-      })
-    )
+    mockFetch()
     const { container } = render(<MemoryRouter><RequirementsListPage /></MemoryRouter>)
     await waitFor(() => {
       expect(container.querySelector('.ant-empty')).toBeInTheDocument()

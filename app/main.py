@@ -1,5 +1,7 @@
 """FastAPI application factory."""
 
+import logging
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
@@ -7,6 +9,8 @@ from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.queue import init_huey
 from app.core.webhook import WebhookHandler, WebhookValidationError, WebhookProcessingError
+
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> FastAPI:
@@ -94,8 +98,11 @@ def create_app() -> FastAPI:
 
         Body: {"original_text": "...", "summary": "...", "submitter_id": "...",
                "submitter_name": "...", "tags": [...]}
+
+        After creation, auto-triggers the review team (3 agents) for scoring.
         """
         from app.core.requirements_service import RequirementsService
+        from app.core.review_scoring import auto_review_requirement
         db = next(get_db())
         try:
             result = RequirementsService.create_requirement(
@@ -106,6 +113,15 @@ def create_app() -> FastAPI:
                 submitter_name=body.get("submitter_name"),
                 tags=body.get("tags"),
             )
+
+            try:
+                auto_review_requirement(db, result["id"])
+            except Exception as review_err:
+                logger.warning(
+                    "auto_review_requirement failed for %s: %s",
+                    result["id"], review_err,
+                )
+
             return result
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e))

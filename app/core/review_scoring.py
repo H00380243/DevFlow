@@ -89,6 +89,48 @@ class AllAgentsFailedError(Exception):
         super().__init__(f"All 3 agents failed for requirement: {req_id}")
 
 
+def auto_review_requirement(db: Session, req_id: str) -> "ReviewResult | None":
+    """Auto-trigger review scoring for a newly created requirement.
+
+    Uses configured CodeAgentAdapter if CODE_AGENT_PROVIDER != "stub",
+    otherwise falls back to the stub call_llm path.
+
+    Returns ReviewResult on success, None on failure (requirement stays PENDING_REVIEW).
+    """
+    from app.core.adapters.base import CodeAgentRegistry
+    from app.core.config import ConfigError, get_settings
+    from app.core.review_aggregation import AggregationService, ArbitrationHandler
+    from app.core.state_machine import StateMachine
+    from app.core.workspace_manager import WorkspaceManager
+
+    settings = get_settings()
+    provider = settings.CODE_AGENT_PROVIDER
+
+    adapter = None
+    wm = None
+    if provider and provider.lower() != "stub":
+        try:
+            adapter = CodeAgentRegistry.get(
+                provider,
+                cli_path=settings.CODE_AGENT_CLI_PATH,
+            )
+            wm = WorkspaceManager()
+        except ConfigError:
+            logger.warning(
+                "Adapter not registered for provider=%s, falling back to stub LLM",
+                provider,
+            )
+
+    team = ReviewTeam(db, adapter=adapter, workspace_manager=wm)
+    scores = team.run_scoring(req_id)
+
+    sm = StateMachine(db)
+    arb = ArbitrationHandler(db, sm)
+    agg = AggregationService(sm, arb)
+    result = agg.aggregate(req_id, scores)
+    return result
+
+
 class ScoreParseError(Exception):
     def __init__(self, agent_role: str, raw_response: str):
         self.agent_role = agent_role
