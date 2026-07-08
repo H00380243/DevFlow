@@ -92,4 +92,37 @@ describe('RequirementDetailPage', () => {
       expect(screen.getByText('加载失败')).toBeInTheDocument()
     })
   })
+
+  it('renders newly created requirement with empty relations', async () => {
+    const emptyDetail = {
+      id: 'REQ-20260708-001',
+      summary: '新建需求',
+      original_text: '描述内容',
+      submitter_id: 'user001',
+      submitter_name: '张三',
+      tags: [],
+      estimated_scope: null,
+      created_at: '2026-07-08T10:00:00',
+      updated_at: '2026-07-08T10:00:00',
+      current_stage: 'review',
+      current_status: 'PENDING_REVIEW',
+      review_count: 0,
+      design_count: 0,
+      implementation_count: 0,
+      review_details: [],
+      design_details: [],
+      implementation_details: [],
+      timeline: [],
+    }
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify(emptyDetail), { headers: { 'Content-Type': 'application/json' } })
+    )
+    const { container } = renderWithRoute('REQ-20260708-001')
+    await waitFor(() => {
+      expect(screen.getByText('REQ-20260708-001')).toBeInTheDocument()
+    })
+    expect(screen.getByText('暂无流转记录')).toBeInTheDocument()
+    expect(screen.getByText('新建需求')).toBeInTheDocument()
+    expect(container.querySelectorAll('.ant-descriptions-item').length).toBeGreaterThan(0)
+  })
 })
