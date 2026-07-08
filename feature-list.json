@@ -360,10 +360,12 @@
       "title": "交付档案与状态归档",
       "description": "生成交付档案、状态置已交付、IM 通知",
       "priority": "high",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-017a", "FR-017b"],
       "dependencies": [18],
-      "ui": false
+      "ui": false,
+      "st_case_count": 19,
+      "report_path": "docs/report/feature-19-delivery-archive-report.md"
     },
     {
       "id": 20,

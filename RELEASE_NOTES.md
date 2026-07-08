@@ -26,6 +26,7 @@
 - F016 冲烟验证 — SmokeVerifier 语法检查（ast.parse）、导入验证（importlib）、启动验证（exec）、VerificationResult 聚合；17 tests，覆盖率 96% line / 96% branch
 - F017 实施确认门 — ImplementationConfirmationHandler 确认/驳回处理（3次重试上限）、ConfirmationTimeoutMonitor 4h 超时检测与升级、状态流转（IMPL_APPROVED→DELIVERED, IMPL_REJECTED→IN_IMPLEMENTATION）、EMPTY_REJECT_REASON_ERROR；18 tests，覆盖率 95% line / ~82% branch
 - F018 Git 提交与密钥检测 — SecretDetector 8 模式密钥扫描（AWS/GitHub/Bearer/PEM）、GitHandler 分支创建/提交/推送、GitCommitOrchestrator 全流程编排（扫描→分支→提交→推送+3次重试）、push_enabled 开关、CredentialExpiredError 认证错误分离；21 tests，覆盖率 94% line（git_handler.py）/ 100% branch / 总覆盖 95.06%
+- F019 交付档案与状态归档 — DeliveryArchiveHandler 全流程（档案JSON生成→MinIO上传3次退避重试→DB持久化→状态机IMPL_APPROVED→DELIVERED→IM通知3次退避重试）、TypeError 非重试异常直接传播、Upload失败通知管理员不影响已提交Git代码、NotificationFailedError 通知耗尽异常；19 tests，覆盖率 100% line（delivery_archive_handler.py）/ 总覆盖 95.15%
 
 ### Changed
 - (none yet)
