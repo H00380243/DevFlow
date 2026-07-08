@@ -58,9 +58,31 @@ def create_app() -> FastAPI:
     async def dashboard_metrics():
         """Return dashboard metrics (total requirements, review pass rate, in-progress count)."""
         from app.core.dashboard_service import DashboardService
-        db = get_db().__next__()
+        db = next(get_db())
         try:
             return DashboardService.get_metrics(db)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            db.close()
+
+    @app.get("/api/requirements")
+    async def list_requirements(
+        page: int = 1,
+        page_size: int = 10,
+        stage: str | None = None,
+        status: str | None = None,
+        submitter: str | None = None,
+        search: str | None = None,
+    ):
+        """Return paginated, filtered list of requirements."""
+        from app.core.requirements_service import RequirementsService
+        db = next(get_db())
+        try:
+            filters = {k: v for k, v in locals().items() if k != "db" and v is not None}
+            return RequirementsService.get_requirements(db, filters)
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=str(e))
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         finally:

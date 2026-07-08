@@ -28,6 +28,7 @@
 - F018 Git 提交与密钥检测 — SecretDetector 8 模式密钥扫描（AWS/GitHub/Bearer/PEM）、GitHandler 分支创建/提交/推送、GitCommitOrchestrator 全流程编排（扫描→分支→提交→推送+3次重试）、push_enabled 开关、CredentialExpiredError 认证错误分离；21 tests，覆盖率 94% line（git_handler.py）/ 100% branch / 总覆盖 95.06%
 - F019 交付档案与状态归档 — DeliveryArchiveHandler 全流程（档案JSON生成→MinIO上传3次退避重试→DB持久化→状态机IMPL_APPROVED→DELIVERED→IM通知3次退避重试）、TypeError 非重试异常直接传播、Upload失败通知管理员不影响已提交Git代码、NotificationFailedError 通知耗尽异常；19 tests，覆盖率 100% line（delivery_archive_handler.py）/ 总覆盖 95.15%
 - F020 看板首页指标 — DashboardService.get_metrics() 3 指标（总需求数/评审通过率/进行中数）、GET /api/dashboard/metrics 端点；前端 Vite + React 19 + Ant Design v6，MetricCard（加载骨架屏/错误徽章）、DashboardPage（EmptyState/自动刷新）；18 tests（10 后端 + 8 前端），覆盖率 95% 总覆盖
+- F021 需求列表与筛选搜索 — RequirementsService.get_requirements() 分页筛选搜索、GET /api/requirements 端点；前端 RequirementsListPage（Ant Design Table + Select + Search + Pagination）、React Router 路由；18 tests（13 后端 + 5 前端）
 
 ### Changed
 - (none yet)

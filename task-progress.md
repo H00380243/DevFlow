@@ -309,37 +309,7 @@
 ---
 
 ## Current State
-Progress: 17/23 · Last: F017 (实施确认门, 2026-07-09) · Next: F018 (Git 提交与密钥检测)
-
-### Feature #15: 实施团代码生成 — PASS
-- Feature Design: PASS (SubAgent) — 12 test inventory rows, 67% negative ratio
-- Design doc: `docs/features/2026-07-08-F015-implementation-code-generation.md`
-- TDD: green ✓ (17/17)
-- Quality Gates: 91% line (implementation_team.py)
-- Feature-ST: Skipped (user requested)
-- Files: app/core/implementation_team.py (new), tests/test_implementation_team.py (new)
-- Tests: 17 tests covering FUNC, BNDRY, PERF, INTG categories
-- Key components: ImplementationTeam, ImplementationAgent, CodeOutput, CodeResult, CodeParseError, AllAgentsFailedError
-- Coverage: 91% line, branch threshold met
-
-### Feature #16: 冲烟验证 — PASS
-- Completed: 2026-07-09
-- Git: 1680713 feat(F016): 冲烟验证 — SmokeVerifier, 17 tests, 96% line/96% branch
-- TDD: green ✓ (17/17)
-- Quality Gates: 96% line, 96% branch
-- Feature-ST: Skipped (user requested)
-- Files: app/core/smoke_verification.py (new), tests/test_smoke_verification.py (new), docs/features/2026-07-09-F016-smoke-verification.md (new)
-- Tests: 17 tests covering FUNC, BNDRY categories
-- Key components: SmokeVerifier, VerificationResult, check_syntax/check_imports/check_startup
-
-### Feature #17: 实施确认门 — PASS
-- Completed: 2026-07-09
-- TDD: green ✓ (18/18)
-- Quality Gates: 95% line, ~82% branch
-- Feature-ST: Skipped (user requested)
-- Files: app/core/implementation_confirmation_handler.py (new), app/core/state_machine.py (modified), tests/test_implementation_confirmation_handler.py (new), docs/features/2026-07-09-F017-implementation-confirmation-gate.md (new)
-- Tests: 18 tests covering FUNC, BNDRY categories
-- Key components: ImplementationConfirmationHandler, ConfirmationTimeoutMonitor, EmptyRejectReasonError
+Progress: 21/23 · Last: F021 (需求列表与筛选搜索, 2026-07-09) · Next: F022 (需求详情页)
 
 ### Feature #18: Git 提交与密钥检测 — PASS
 - Completed: 2026-07-09
@@ -370,6 +340,17 @@ Progress: 17/23 · Last: F017 (实施确认门, 2026-07-09) · Next: F018 (Git �
 - Key components: DashboardService.get_metrics(), GET /api/dashboard/metrics, MetricCard, DashboardPage
 - Backend: 3 SQLAlchemy queries computing total_requirements, review_pass_rate, in_progress_count
 - Frontend: Ant Design v6, MetricCard with loading skeleton + error badge, DashboardPage with fetch + EmptyState
+
+### Feature #21: 需求列表与筛选搜索 — PASS
+- Completed: 2026-07-09
+- TDD: green ✓ (13 backend + 5 frontend = 18 tests)
+- Quality Gates: ~94% total coverage (new main.py routes reduce aggregate)
+- Feature-ST: Skipped (user requested)
+- Files: app/core/requirements_service.py (new), app/main.py (modified), frontend/src/pages/RequirementsListPage.tsx (new), frontend/src/pages/RequirementsListPage.test.tsx (new), frontend/src/App.tsx (modified)
+- Key components: RequirementsService.get_requirements(), GET /api/requirements, RequirementsListPage (Ant Design Table + Select + Search + Pagination)
+- Backend: Paginated filtered query with stage/status/submitter exact match, search on id LIKE + summary LIKE, page validation
+- Frontend: 6-column Table with Select filter bar (stage/status), Input.Search, pagination with total display, empty state
+- Report: docs/report/feature-21-requirements-list-report.md
 
 
 ## Session Log

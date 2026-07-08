@@ -390,11 +390,13 @@
       "title": "需求列表与筛选搜索",
       "description": "实现需求列表表格（7列）+ 筛选栏 + 搜索 + 分页",
       "priority": "medium",
-      "status": "failing",
+      "status": "passing",
       "srs_trace": ["FR-019"],
       "dependencies": [2],
       "ui": true,
       "ui_entry": "/requirements",
+      "st_case_count": 18,
+      "report_path": "docs/report/feature-21-requirements-list-report.md",
       "verification_steps": [
         "[devtools] Navigate /requirements → EXPECT: page title '需求列表', filter bar with 3 selects, table with 7 columns, pagination; REJECT: empty table, missing filter controls"
       ]

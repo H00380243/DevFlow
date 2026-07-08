@@ -70,20 +70,47 @@
   - Upload retry 3x 指数退避, 接口验证 (substring match MVP), 状态流转 IN_DESIGN→DESIGN_PENDING_CONFIRM
   - 260 total tests (17 F013-specific), 100% line (design_output_handler), 97% overall, ST skipped
   - Report: `docs/report/feature-13-design-artifact-generation-report.md`
-- **F014 (设计确认门与迭代): PASS** — git `718f373` (next commit)
+- **F014 (设计确认门与迭代): PASS** — git `718f373`
   - DesignConfirmationHandler (confirm/reject), ConfirmationTimeoutMonitor (4h timeout), state machine TIMEOUT self-loop
   - 24 tests, 87% line / 71% branch (design_confirmation_handler.py), ST skipped
   - Report: `docs/report/feature-14-design-confirmation-gate-report.md`
-- **F015 (实施团代码生成): PASS** — git `8ca5496` (next commit)
+- **F015 (实施团代码生成): PASS** — git `8ca5496`
   - ImplementationTeam, ImplementationAgent, CodeOutput/CodeResult, retry_with_backoff (reuse F008)
   - 17 tests, 91% line (implementation_team.py), ST skipped
   - Report: `docs/report/feature-15-implementation-code-generation-report.md`
+- **F016 (冲烟验证): PASS** — git `1680713`
+  - SmokeVerifier (check_syntax/check_imports/check_startup), VerificationResult
+  - 17 tests, 96% line / 96% branch, ST skipped
+  - Report: `docs/report/feature-16-smoke-verification-report.md`
+- **F017 (实施确认门): PASS** — git `waiting`
+  - ImplementationConfirmationHandler (confirm/reject 3× retry limit), ConfirmationTimeoutMonitor (4h timeout)
+  - 18 tests, 95% line / ~82% branch, ST skipped
+  - Report: `docs/report/feature-17-implementation-confirmation-gate-report.md`
+- **F018 (Git 提交与密钥检测): PASS** — git `fee99aa`
+  - SecretDetector (8 patterns), GitHandler (stubs), GitCommitOrchestrator (scan→branch→commit→push, 3× retry)
+  - 21 tests, 94% line (git_handler), 95.06% total, ST skipped
+  - Report: `docs/report/feature-18-git-commit-report.md`
+- **F019 (交付档案与状态归档): PASS** — git `ed166c2`
+  - DeliveryArchiveHandler (JSON build→upload→persist→transition→notify, 3× retry), TypeError non-retryable
+  - 19 tests, ~100% line (delivery_archive_handler), 95.15% total, ST skipped
+  - Report: `docs/report/feature-19-delivery-archive-report.md`
+- **F020 (看板首页指标): PASS** — git `b9f6b5c`
+  - DashboardService.get_metrics() (3 queries), GET /api/dashboard/metrics, MetricCard, DashboardPage
+  - 18 tests (10 backend + 8 frontend Vitest), 95% total, ST skipped
+  - Report: `docs/report/feature-20-dashboard-metrics-report.md`
+- **F021 (需求列表与筛选搜索): PASS** — git `waiting`
+  - RequirementsService.get_requirements() (paginated/filtered/search), GET /api/requirements endpoint
+  - RequirementsListPage (Ant Design Table + Select + Search + Pagination), React Router routing
+  - 18 tests (13 backend + 5 frontend Vitest), ST skipped
+  - Report: `docs/report/feature-21-requirements-list-report.md`
 
 ### In Progress
-- **F016 (冲烟验证)** — TDD pending
-  - Dependencies: F007 ✓ (state machine), F014 ✓ (F014 provides design artifacts for F015)
-  - SRS Trace: FR-013
-  - Next: Orient → Feature Design → TDD
+- **F022 (需求详情页)** — pending implementation
+  - Dependencies: F020 ✓ (dashboard patterns), F021 ✓ (requirements service/list)
+  - Next: Feature Design → TDD
+- **F023 (看板操作与 IM 同步)** — pending implementation
+  - Dependencies: F022 ✓
+  - Next: Feature Design → TDD
 
 ### Blocked
 - None
@@ -105,27 +132,20 @@
 - **F013 implementation**: DesignOutputHandler with injectable upload_fn/push_fn; upload_document 3-retry exponential backoff; _validate_interfaces substring match MVP; _generate_document JSON assembly
 
 ## Next Steps
-1. F016 Orient → Feature Design → TDD Red-Green-Refactor
-2. Continue F017–F023
+1. F022 (需求详情页) — Feature Design → TDD
+2. F023 (看板操作与 IM 同步) — Feature Design → TDD
 
 ## Critical Context
-- Progress: 15/23 features passing; Next: F016
+- Progress: 21/23 features passing; Next: F022, F023
 - Critical path: F001→F002→F003→F004→F007→F008→F009→F010→F011→F012→F013
 - 23 features total, 7 milestones
-- F013 key classes: DesignOutputHandler, UploadFailedError
-- F013 SRS FR-010: 生成结构化设计文档+代码目录骨架+核心接口定义+待确认项标注+存储失败重试
-- F013 depends on F012 (DesignTeam) for design outputs
-- F013 design assumption: interface derivability uses substring match (method name in requirement text) as MVP heuristic
-- F015 key classes: ImplementationTeam, ImplementationAgent, CodeOutput/CodeResult
-- F015 depends on F007 (state machine) + F012/13/14 (design artifacts)
-- Git HEAD: `8ca5496` (waiting for F015 commit)
 
 ## Relevant Files
 - `docs/plans/2026-07-04-demandflow-srs.md` — Approved SRS (21 FRs, 11 NFRs); FR-004b is F006's srs_trace
 - `docs/plans/2026-07-04-demandflow-design.md` — Approved Design; §2.1 (IM integration), §4.2 (API contracts)
 - `docs/plans/2026-07-04-demandflow-ats.md` — Approved ATS
-- `feature-list.json` — Task inventory (F001-F013 passing, F014 failing)
-- `task-progress.md` — Progress log (13/23, last: F013, next: F014)
+- `feature-list.json` — Task inventory (F001-F021 passing, F022-F023 failing)
+- `task-progress.md` — Progress log (21/23, last: F021, next: F022)
 - `app/__init__.py`, `app/main.py` — FastAPI app factory
 - `app/core/config.py` — pydantic-settings config (DATABASE_URL, HUEY_URL, IM_PLATFORM, IM_WEBHOOK_SECRET, etc.)
 - `app/core/database.py` — SQLAlchemy session (`get_db`)
@@ -146,57 +166,19 @@
 - `app/core/design_output_handler.py` — DesignOutputHandler (F013)
 - `app/core/design_confirmation_handler.py` — DesignConfirmationHandler, ConfirmationTimeoutMonitor (F014)
 - `app/core/implementation_team.py` — ImplementationTeam, ImplementationAgent (F015)
+- `app/core/smoke_verification.py` — SmokeVerifier (F016)
+- `app/core/implementation_confirmation_handler.py` — ImplementationConfirmationHandler (F017)
+- `app/core/git_handler.py` — SecretDetector, GitHandler, GitCommitOrchestrator (F018)
+- `app/core/delivery_archive_handler.py` — DeliveryArchiveHandler (F019)
+- `app/core/dashboard_service.py` — DashboardService (F020)
+- `app/core/requirements_service.py` — RequirementsService (F021)
 - `app/models.py` — 8 SQLAlchemy models + init_db + Pydantic models
 - `alembic/` — Alembic migration config + `versions/0001_initial.py`
-- `tests/test_app.py`, `tests/test_config.py`, `tests/test_database.py`, `tests/test_queue.py` — F001 tests
-- `tests/test_models.py`, `tests/test_migration.py` — F002 tests
-- `tests/test_webhook_handler.py`, `tests/test_message_router.py` — F003 tests
-- `tests/test_requirement_parser.py`, `tests/test_idempotency_checker.py` — F004 tests
-- `tests/test_command_parser.py`, `tests/test_permission_checker.py`, `tests/test_command_executor.py` — F005 tests
-- `tests/test_query_parser.py` — F006 tests
-- `tests/test_state_machine.py` — F007 tests
-- `tests/test_review_scoring.py` — F008 tests
-- `tests/test_review_aggregation.py` — F009 tests
-- `tests/test_arbitration_notification.py` — F010 tests
-- `tests/test_rejection_notification.py` — F011 tests
-- `tests/test_design_team.py` — F012 tests
-- `tests/test_design_output_handler.py` — F013 tests
-- `docs/features/2026-07-05-F001-project-skeleton.md` — F001 feature design
-- `docs/features/2026-07-05-F002-data-model.md` — F002 feature design
-- `docs/features/2026-07-05-F003-im-webhook.md` — F003 feature design
-- `docs/features/2026-07-05-F004-requirement-parser.md` — F004 feature design
-- `docs/features/2026-07-05-F005-command-parser.md` — F005 feature design
-- `docs/features/2026-07-05-F006-query-parser.md` — F006 feature design
-- `docs/features/2026-07-05-F007-state-machine.md` — F007 feature design
-- `docs/features/2026-07-07-F008-review-scoring.md` — F008 feature design
-- `docs/features/2026-07-07-F009-review-aggregation.md` — F009 feature design
-- `docs/features/2026-07-07-F010-arbitration-notification.md` — F010 feature design
-- `docs/features/2026-07-07-F011-rejection-notification.md` — F011 feature design
-- `docs/features/2026-07-08-F012-design-team-output.md` — F012 feature design
-- `docs/features/2026-07-08-F013-design-artifact-generation.md` — F013 feature design
-- `docs/test-cases/feature-1-project-skeleton.md` — F001 ST cases
-- `docs/test-cases/feature-2-data-model.md` — F002 ST cases
-- `docs/test-cases/feature-3-im-webhook.md` — F003 ST cases
-- `docs/test-cases/feature-4-requirement-parser.md` — F004 ST cases
-- `docs/test-cases/feature-5-command-parser.md` — F005 ST cases
-- `docs/test-cases/feature-6-query-parser.md` — F006 ST cases
-- `docs/test-cases/feature-7-state-machine.md` — F007 ST cases
-- `docs/test-cases/feature-8-review-scoring.md` — F008 ST cases
-- `docs/test-cases/feature-9-review-aggregation.md` — F009 ST cases (generated from design)
-- `docs/report/feature-1-project-skeleton-report.md` — F001 report
-- `docs/report/feature-2-data-model-report.md` — F002 report
-- `docs/report/feature-3-im-webhook-report.md` — F003 report
-- `docs/report/feature-4-requirement-parser-report.md` — F004 report
-- `docs/report/feature-5-command-parser-report.md` — F005 report
-- `docs/report/feature-6-query-parser-report.md` — F006 report
-- `docs/report/feature-7-state-machine-report.md` — F007 report
-- `docs/report/feature-8-review-scoring-report.md` — F008 report
-- `docs/report/feature-9-review-aggregation-report.md` — F009 report
-- `docs/report/feature-10-arbitration-notification-report.md` — F010 report
-- `docs/report/feature-11-rejection-notification-report.md` — F011 report
-- `docs/report/feature-12-design-team-output-report.md` — F012 report
-- `docs/report/feature-13-design-artifact-generation-report.md` — F013 report
-- `RELEASE_NOTES.md` — Updated with F001+F002+F003+F004+F005+F006+F007+F008+F009+F010+F011+F012+F013
+- `tests/*.py` — 401 tests (pytest)
+- `frontend/src/` — React + Ant Design v6 frontend (Vite + Vitest)
+- `docs/features/*.md` — Feature design documents (F001-F021)
+- `docs/report/*.md` — Feature reports (F001-F021)
+- `RELEASE_NOTES.md` — Release changelog
 - `long-task-guide.md` — Worker session guide
 - `env-guide.md` — Service lifecycle
 - `.env.example` — Environment variable template
